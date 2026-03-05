@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Inbox, CheckCircle, BarChart3, Sparkles, Filter } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardHeader from "@/components/DashboardHeader";
 import StatsCard from "@/components/StatsCard";
 import SubmissionCard, { type Submission } from "@/components/SubmissionCard";
@@ -8,17 +10,17 @@ import SubmissionDetail from "@/components/SubmissionDetail";
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-bg.jpg";
 
-// Mock data — will be replaced with real database queries
-const mockSubmissions: Submission[] = [
+// Mock submissions — will be replaced with shared DB queries
+const initialSubmissions: Submission[] = [
   { id: "1", title: "Desert Wind", artist: "Youssef Amrani", category: "music", platform: "casablanca", status: "scored", overallScore: 8.7, submittedAt: "2026-03-04", contentType: "audio" },
   { id: "2", title: "Voices of Tomorrow", artist: "Amina Diallo", category: "poetry", platform: "growth-tour", status: "scored", overallScore: 9.2, submittedAt: "2026-03-04", contentType: "text" },
-  { id: "3", title: "Atlas Groove", artist: "DJ Karim", category: "music", platform: "casablanca", status: "judging", submittedAt: "2026-03-05", contentType: "audio" },
+  { id: "3", title: "Atlas Groove", artist: "DJ Karim", category: "music", platform: "casablanca", status: "pending", submittedAt: "2026-03-05", contentType: "audio" },
   { id: "4", title: "My Future Dream", artist: "Fatima Zahra", category: "dreams", platform: "growth-tour", status: "pending", submittedAt: "2026-03-05", contentType: "video" },
   { id: "5", title: "Street Dance Fusion", artist: "Omar Benali", category: "creative", platform: "growth-tour", status: "pending", submittedAt: "2026-03-05", contentType: "video" },
   { id: "6", title: "Sahara Blues", artist: "Leila Mansouri", category: "music", platform: "casablanca", status: "scored", overallScore: 7.4, submittedAt: "2026-03-03", contentType: "audio" },
 ];
 
-const mockScores: Record<string, any> = {
+const preloadedScores: Record<string, any> = {
   "1": { technicalSkill: 8.5, creativityOriginality: 9.0, emotionalImpact: 8.8, potential: 8.5, overall: 8.7, feedback: "A beautifully crafted piece that blends traditional Moroccan instrumentation with modern production. The melodic progression shows strong compositional maturity. The emotional arc builds effectively, though the bridge section could use more dynamic contrast." },
   "2": { technicalSkill: 8.8, creativityOriginality: 9.5, emotionalImpact: 9.6, potential: 8.9, overall: 9.2, feedback: "Exceptional spoken word piece with vivid imagery and powerful thematic resonance. The rhythm and cadence demonstrate mastery of the craft. The closing stanza delivers a profound emotional punch that lingers." },
   "6": { technicalSkill: 7.2, creativityOriginality: 7.5, emotionalImpact: 7.8, potential: 7.1, overall: 7.4, feedback: "A promising blues-influenced track with authentic tonal quality. The guitar work shows talent but needs more refined technique in the solo passages. Good foundational composition with room for growth." },
@@ -28,29 +30,82 @@ type FilterType = "all" | "pending" | "judging" | "scored";
 type PlatformFilter = "all" | "casablanca" | "growth-tour";
 
 const Index = () => {
+  const [submissions, setSubmissions] = useState<Submission[]>(initialSubmissions);
+  const [scores, setScores] = useState<Record<string, any>>(preloadedScores);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>("all");
   const [isJudging, setIsJudging] = useState(false);
+  const { toast } = useToast();
 
-  const filtered = mockSubmissions.filter((s) => {
+  const filtered = submissions.filter((s) => {
     if (filter !== "all" && s.status !== filter) return false;
     if (platformFilter !== "all" && s.platform !== platformFilter) return false;
     return true;
   });
 
-  const selected = mockSubmissions.find((s) => s.id === selectedId);
+  const selected = submissions.find((s) => s.id === selectedId);
 
-  const handleJudge = () => {
+  const handleJudge = async () => {
+    if (!selected) return;
     setIsJudging(true);
-    setTimeout(() => setIsJudging(false), 2000);
+
+    // Update status to judging
+    setSubmissions((prev) =>
+      prev.map((s) => (s.id === selected.id ? { ...s, status: "judging" as const } : s))
+    );
+
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-judge", {
+        body: {
+          submission: {
+            title: selected.title,
+            artist: selected.artist,
+            category: selected.category,
+            platform: selected.platform,
+            contentType: selected.contentType,
+          },
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      // Store scores and update status
+      setScores((prev) => ({ ...prev, [selected.id]: data }));
+      setSubmissions((prev) =>
+        prev.map((s) =>
+          s.id === selected.id ? { ...s, status: "scored" as const, overallScore: data.overall } : s
+        )
+      );
+
+      toast({
+        title: "AI Evaluation Complete",
+        description: `${selected.title} scored ${data.overall}/10`,
+      });
+    } catch (err: any) {
+      console.error("AI Judge error:", err);
+      // Revert status
+      setSubmissions((prev) =>
+        prev.map((s) => (s.id === selected.id ? { ...s, status: "pending" as const } : s))
+      );
+      toast({
+        title: "Evaluation Failed",
+        description: err.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsJudging(false);
+    }
   };
 
   const stats = {
-    total: mockSubmissions.length,
-    pending: mockSubmissions.filter((s) => s.status === "pending").length,
-    scored: mockSubmissions.filter((s) => s.status === "scored").length,
-    avgScore: mockSubmissions.filter((s) => s.overallScore).reduce((a, s) => a + (s.overallScore || 0), 0) / (mockSubmissions.filter((s) => s.overallScore).length || 1),
+    total: submissions.length,
+    pending: submissions.filter((s) => s.status === "pending").length,
+    scored: submissions.filter((s) => s.status === "scored").length,
+    avgScore:
+      submissions.filter((s) => s.overallScore).reduce((a, s) => a + (s.overallScore || 0), 0) /
+      (submissions.filter((s) => s.overallScore).length || 1),
   };
 
   return (
@@ -85,7 +140,7 @@ const Index = () => {
             <SubmissionDetail
               key="detail"
               submission={selected}
-              scores={mockScores[selected.id]}
+              scores={scores[selected.id]}
               onBack={() => setSelectedId(null)}
               onJudge={handleJudge}
               isJudging={isJudging}

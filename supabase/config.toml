@@ -1,0 +1,4 @@
+project_id = "ixhlezprhuxerglmaljk"
+
+[functions.ai-judge]
+verify_jwt = false
