@@ -14,7 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_scores: {
+        Row: {
+          created_at: string
+          creativity_originality: number
+          emotional_impact: number
+          feedback: string
+          id: string
+          model_used: string
+          overall_score: number
+          potential: number
+          submission_id: string
+          technical_skill: number
+        }
+        Insert: {
+          created_at?: string
+          creativity_originality: number
+          emotional_impact: number
+          feedback: string
+          id?: string
+          model_used?: string
+          overall_score: number
+          potential: number
+          submission_id: string
+          technical_skill: number
+        }
+        Update: {
+          created_at?: string
+          creativity_originality?: number
+          emotional_impact?: number
+          feedback?: string
+          id?: string
+          model_used?: string
+          overall_score?: number
+          potential?: number
+          submission_id?: string
+          technical_skill?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_scores_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: true
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submissions: {
+        Row: {
+          artist_name: string
+          category: string
+          content_text: string | null
+          content_type: Database["public"]["Enums"]["content_type"]
+          content_url: string | null
+          created_at: string
+          description: string | null
+          external_id: string | null
+          id: string
+          platform: Database["public"]["Enums"]["platform_source"]
+          status: Database["public"]["Enums"]["submission_status"]
+          submitted_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          artist_name: string
+          category: string
+          content_text?: string | null
+          content_type: Database["public"]["Enums"]["content_type"]
+          content_url?: string | null
+          created_at?: string
+          description?: string | null
+          external_id?: string | null
+          id?: string
+          platform: Database["public"]["Enums"]["platform_source"]
+          status?: Database["public"]["Enums"]["submission_status"]
+          submitted_at?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          artist_name?: string
+          category?: string
+          content_text?: string | null
+          content_type?: Database["public"]["Enums"]["content_type"]
+          content_url?: string | null
+          created_at?: string
+          description?: string | null
+          external_id?: string | null
+          id?: string
+          platform?: Database["public"]["Enums"]["platform_source"]
+          status?: Database["public"]["Enums"]["submission_status"]
+          submitted_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +120,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      content_type: "audio" | "video" | "text" | "image"
+      platform_source: "casablanca" | "growth-tour"
+      submission_status: "pending" | "judging" | "scored"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +249,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      content_type: ["audio", "video", "text", "image"],
+      platform_source: ["casablanca", "growth-tour"],
+      submission_status: ["pending", "judging", "scored"],
+    },
   },
 } as const
