@@ -226,7 +226,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
     ) / 10;
 
     // Save AI scores
-    const { error: scoreErr } = await supabaseAdmin.from("ai_scores").insert({
+    const { error: scoreErr } = await supabaseAdmin.from("ai_scores").upsert({
       submission_id: submissionId,
       technical_skill: result.technicalSkill,
       creativity_originality: result.creativityOriginality,
@@ -234,7 +234,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       potential: result.potential,
       overall_score: overall,
       feedback: result.feedback,
-    });
+    }, { onConflict: "submission_id" });
 
     if (scoreErr) {
       console.error("Failed to save scores:", scoreErr);
