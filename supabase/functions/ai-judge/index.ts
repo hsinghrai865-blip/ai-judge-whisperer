@@ -276,6 +276,24 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
     });
     if (apiErr) console.error("Failed to save API scores:", apiErr);
 
+    // Save Social Breakout Potential
+    const sbp = result.socialBreakout;
+    const sbpOverall = Math.round(
+      ((sbp.hookStrength + sbp.clipability + sbp.emotionalReactivity + sbp.danceCompatibility + sbp.discoveryPotential) / 5) * 10
+    ) / 10;
+
+    const { error: sbpErr } = await supabaseAdmin.from("social_breakout_potential").insert({
+      submission_id: submissionId,
+      overall_score: sbpOverall,
+      hook_strength: sbp.hookStrength,
+      clipability: sbp.clipability,
+      emotional_reactivity: sbp.emotionalReactivity,
+      dance_compatibility: sbp.danceCompatibility,
+      discovery_potential: sbp.discoveryPotential,
+      ai_summary: sbp.aiSummary,
+    });
+    if (sbpErr) console.error("Failed to save social breakout:", sbpErr);
+
     await supabaseAdmin.from("submissions").update({ status: "scored" }).eq("id", submissionId);
 
     return new Response(
@@ -288,6 +306,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
         feedback: result.feedback,
         vocalDNA: vdna,
         artistPotentialIndex: { ...api, overallScore: apiOverall },
+        socialBreakout: { ...sbp, overallScore: sbpOverall },
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

@@ -73,6 +73,11 @@ const SubmissionCard = ({ submission, index, onClick }: SubmissionCardProps) => 
                     <span className="text-sm font-bold text-gold">{submission.apiScore.toFixed(1)}</span>
                   </div>
                 )}
+                {submission.smbpScore !== undefined && (
+                  <div className="w-12 h-12 rounded-full bg-secondary border border-emerald/30 flex items-center justify-center" title="Social Breakout">
+                    <span className="text-sm font-bold text-emerald">{submission.smbpScore.toFixed(1)}</span>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -128,6 +128,9 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socia
 
     {/* Artist Potential Index Card */}
     {artistPotential && <ArtistPotentialCard data={artistPotential} />}
+
+    {/* Social Breakout Potential Card */}
+    {socialBreakout && <SocialBreakoutCard data={socialBreakout} />}
   </motion.div>
 );
 
