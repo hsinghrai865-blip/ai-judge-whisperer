@@ -111,6 +111,53 @@ export type Database = {
           },
         ]
       }
+      social_breakout_potential: {
+        Row: {
+          ai_summary: string
+          clipability: number
+          created_at: string
+          dance_compatibility: number
+          discovery_potential: number
+          emotional_reactivity: number
+          hook_strength: number
+          id: string
+          overall_score: number
+          submission_id: string
+        }
+        Insert: {
+          ai_summary: string
+          clipability: number
+          created_at?: string
+          dance_compatibility: number
+          discovery_potential: number
+          emotional_reactivity: number
+          hook_strength: number
+          id?: string
+          overall_score: number
+          submission_id: string
+        }
+        Update: {
+          ai_summary?: string
+          clipability?: number
+          created_at?: string
+          dance_compatibility?: number
+          discovery_potential?: number
+          emotional_reactivity?: number
+          hook_strength?: number
+          id?: string
+          overall_score?: number
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_breakout_potential_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: true
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       submissions: {
         Row: {
           artist_name: string
