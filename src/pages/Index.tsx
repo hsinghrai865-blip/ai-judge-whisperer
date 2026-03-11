@@ -26,6 +26,7 @@ interface AIScores {
 const Index = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [scores, setScores] = useState<Record<string, AIScores>>({});
+  const [vocalDNAs, setVocalDNAs] = useState<Record<string, VocalDNA>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>("all");
