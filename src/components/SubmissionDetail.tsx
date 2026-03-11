@@ -125,6 +125,12 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socia
       </div>
     )}
 
+    {/* Audio Upload */}
+    <AudioUploader
+      submissionId={submission.id}
+      analysisStatus={submission.contentType === "audio" ? "none" : undefined}
+    />
+
     {/* Vocal DNA Card */}
     {vocalDNA && <VocalDNACard data={vocalDNA} />}
 
@@ -133,6 +139,9 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socia
 
     {/* Social Breakout Potential Card */}
     {socialBreakout && <SocialBreakoutCard data={socialBreakout} />}
+
+    {/* Architecture Overview */}
+    {scores && <AnalysisArchitectureCard />}
   </motion.div>
 );
 
