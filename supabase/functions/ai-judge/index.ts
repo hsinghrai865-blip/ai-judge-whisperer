@@ -244,7 +244,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
 
     // Save Vocal DNA
     const vdna = result.vocalDNA;
-    const { error: dnaErr } = await supabaseAdmin.from("vocal_dna").insert({
+    const { error: dnaErr } = await supabaseAdmin.from("vocal_dna").upsert({
       submission_id: submissionId,
       vocal_range_low: vdna.vocalRangeLow,
       vocal_range_high: vdna.vocalRangeHigh,
@@ -257,7 +257,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       analysis_status: "ai_estimated",
       analysis_engine: "google/gemini-3-flash-preview",
       is_placeholder: true,
-    });
+    }, { onConflict: "submission_id" });
     if (dnaErr) console.error("Failed to save vocal DNA:", dnaErr);
 
     // Save Artist Potential Index
