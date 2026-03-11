@@ -285,7 +285,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       ((sbp.hookStrength + sbp.clipability + sbp.emotionalReactivity + sbp.danceCompatibility + sbp.discoveryPotential) / 5) * 10
     ) / 10;
 
-    const { error: sbpErr } = await supabaseAdmin.from("social_breakout_potential").insert({
+    const { error: sbpErr } = await supabaseAdmin.from("social_breakout_potential").upsert({
       submission_id: submissionId,
       overall_score: sbpOverall,
       hook_strength: sbp.hookStrength,
@@ -294,7 +294,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       dance_compatibility: sbp.danceCompatibility,
       discovery_potential: sbp.discoveryPotential,
       ai_summary: sbp.aiSummary,
-    });
+    }, { onConflict: "submission_id" });
     if (sbpErr) console.error("Failed to save social breakout:", sbpErr);
 
     await supabaseAdmin.from("submissions").update({ status: "scored" }).eq("id", submissionId);
