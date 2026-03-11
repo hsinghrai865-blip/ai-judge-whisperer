@@ -9,6 +9,7 @@ export interface Submission {
   platform: "casablanca" | "growth-tour";
   status: "pending" | "judging" | "scored";
   overallScore?: number;
+  apiScore?: number;
   submittedAt: string;
   contentType: string;
 }
