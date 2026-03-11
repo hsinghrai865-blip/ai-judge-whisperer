@@ -127,8 +127,11 @@ const Index = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      // Update local state with real scores
+      // Update local state with real scores and vocal DNA
       setScores((prev) => ({ ...prev, [selected.id]: data }));
+      if (data.vocalDNA) {
+        setVocalDNAs((prev) => ({ ...prev, [selected.id]: data.vocalDNA }));
+      }
       setSubmissions((prev) =>
         prev.map((s) =>
           s.id === selected.id ? { ...s, status: "scored" as const, overallScore: data.overall } : s
