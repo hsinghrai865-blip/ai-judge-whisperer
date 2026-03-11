@@ -152,6 +152,7 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socia
     {/* Architecture Overview */}
     {scores && <AnalysisArchitectureCard />}
   </motion.div>
-);
+  );
+};
 
 export default SubmissionDetail;
