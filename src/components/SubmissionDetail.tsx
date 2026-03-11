@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import ScoreBar from "./ScoreBar";
 import VocalDNACard, { type VocalDNA } from "./VocalDNACard";
 import ArtistPotentialCard, { type ArtistPotential } from "./ArtistPotentialCard";
+import SocialBreakoutCard, { type SocialBreakout } from "./SocialBreakoutCard";
 import type { Submission } from "./SubmissionCard";
 
 interface AIScores {
@@ -20,12 +21,13 @@ interface SubmissionDetailProps {
   scores?: AIScores;
   vocalDNA?: VocalDNA;
   artistPotential?: ArtistPotential;
+  socialBreakout?: SocialBreakout;
   onBack: () => void;
   onJudge: () => void;
   isJudging: boolean;
 }
 
-const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, onBack, onJudge, isJudging }: SubmissionDetailProps) => (
+const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socialBreakout, onBack, onJudge, isJudging }: SubmissionDetailProps) => (
   <motion.div
     initial={{ opacity: 0, x: 20 }}
     animate={{ opacity: 1, x: 0 }}
@@ -126,6 +128,9 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, onBac
 
     {/* Artist Potential Index Card */}
     {artistPotential && <ArtistPotentialCard data={artistPotential} />}
+
+    {/* Social Breakout Potential Card */}
+    {socialBreakout && <SocialBreakoutCard data={socialBreakout} />}
   </motion.div>
 );
 

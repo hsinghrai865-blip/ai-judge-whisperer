@@ -51,7 +51,7 @@ serve(async (req) => {
 - Casablanca Vision: A music label focused on discovering artists blending Moroccan/North African sounds with global genres
 - Growth Tour: A youth talent platform for music, poetry, sports, creative expression, and aspirations
 
-You MUST produce THREE evaluation layers:
+You MUST produce FOUR evaluation layers:
 
 LAYER 1 - PERFORMANCE SCORES (4 criteria, each 0.0-10.0):
 1. Technical Skill - execution quality, technique, proficiency
@@ -74,12 +74,20 @@ LAYER 3 - ARTIST POTENTIAL INDEX (commercial breakout potential):
 - Replay Value (0.0-10.0): likelihood listeners replay
 - Brand Identity Potential (0.0-10.0): recognizable style/character potential
 - Growth Potential (0.0-10.0): raw upside if developed by a label
-- Market Fit (3-5 markets with confidence 0-100, e.g. "Spain Pop", "Afro House", "Mediterranean Fusion", "Latin Crossover", "Indie Pop", "Club/Dance")
+- Market Fit (3-5 markets with confidence 0-100)
 - AI Summary (2-3 sentences on commercial promise and positioning)
+
+LAYER 4 - SOCIAL BREAKOUT POTENTIAL (viral/short-form platform analysis):
+- Hook Strength (0.0-10.0): how strong the vocal melody or phrase hook is for short video clips
+- Clipability (0.0-10.0): how easily a 10-20 second section could be extracted for viral clips
+- Emotional Reactivity (0.0-10.0): likelihood listeners react emotionally to the voice/sound
+- Dance Compatibility (0.0-10.0): whether the rhythm could inspire dance trends or performance clips
+- Discovery Potential (0.0-10.0): likelihood the track performs well in algorithm-driven discovery feeds (TikTok, Reels, Shorts)
+- AI Summary (2-3 sentences on social/viral potential)
 
 Be fair but discerning. Provide specific, constructive analysis.`;
 
-    const userPrompt = `Evaluate this submission with all three layers (Performance, Vocal DNA, Artist Potential Index):
+    const userPrompt = `Evaluate this submission with all four layers (Performance, Vocal DNA, Artist Potential Index, Social Breakout Potential):
 
 Title: ${submission.title}
 Artist: ${submission.artist_name}
@@ -106,7 +114,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
             type: "function",
             function: {
               name: "submit_evaluation",
-              description: "Submit the complete three-layer evaluation.",
+              description: "Submit the complete four-layer evaluation.",
               parameters: {
                 type: "object",
                 properties: {
@@ -166,8 +174,21 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
                     required: ["commercialAppeal", "memorability", "replayValue", "brandIdentityPotential", "growthPotential", "marketFit", "aiSummary"],
                     additionalProperties: false,
                   },
+                  socialBreakout: {
+                    type: "object",
+                    properties: {
+                      hookStrength: { type: "number", description: "0.0-10.0" },
+                      clipability: { type: "number", description: "0.0-10.0" },
+                      emotionalReactivity: { type: "number", description: "0.0-10.0" },
+                      danceCompatibility: { type: "number", description: "0.0-10.0" },
+                      discoveryPotential: { type: "number", description: "0.0-10.0" },
+                      aiSummary: { type: "string", description: "2-3 sentence social/viral analysis" },
+                    },
+                    required: ["hookStrength", "clipability", "emotionalReactivity", "danceCompatibility", "discoveryPotential", "aiSummary"],
+                    additionalProperties: false,
+                  },
                 },
-                required: ["technicalSkill", "creativityOriginality", "emotionalImpact", "potential", "feedback", "vocalDNA", "artistPotentialIndex"],
+                required: ["technicalSkill", "creativityOriginality", "emotionalImpact", "potential", "feedback", "vocalDNA", "artistPotentialIndex", "socialBreakout"],
                 additionalProperties: false,
               },
             },
@@ -255,6 +276,24 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
     });
     if (apiErr) console.error("Failed to save API scores:", apiErr);
 
+    // Save Social Breakout Potential
+    const sbp = result.socialBreakout;
+    const sbpOverall = Math.round(
+      ((sbp.hookStrength + sbp.clipability + sbp.emotionalReactivity + sbp.danceCompatibility + sbp.discoveryPotential) / 5) * 10
+    ) / 10;
+
+    const { error: sbpErr } = await supabaseAdmin.from("social_breakout_potential").insert({
+      submission_id: submissionId,
+      overall_score: sbpOverall,
+      hook_strength: sbp.hookStrength,
+      clipability: sbp.clipability,
+      emotional_reactivity: sbp.emotionalReactivity,
+      dance_compatibility: sbp.danceCompatibility,
+      discovery_potential: sbp.discoveryPotential,
+      ai_summary: sbp.aiSummary,
+    });
+    if (sbpErr) console.error("Failed to save social breakout:", sbpErr);
+
     await supabaseAdmin.from("submissions").update({ status: "scored" }).eq("id", submissionId);
 
     return new Response(
@@ -267,6 +306,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
         feedback: result.feedback,
         vocalDNA: vdna,
         artistPotentialIndex: { ...api, overallScore: apiOverall },
+        socialBreakout: { ...sbp, overallScore: sbpOverall },
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

@@ -10,6 +10,7 @@ export interface Submission {
   status: "pending" | "judging" | "scored";
   overallScore?: number;
   apiScore?: number;
+  smbpScore?: number;
   submittedAt: string;
   contentType: string;
 }
@@ -70,6 +71,11 @@ const SubmissionCard = ({ submission, index, onClick }: SubmissionCardProps) => 
                 {submission.apiScore !== undefined && (
                   <div className="w-12 h-12 rounded-full bg-secondary border border-gold/30 flex items-center justify-center" title="API Score">
                     <span className="text-sm font-bold text-gold">{submission.apiScore.toFixed(1)}</span>
+                  </div>
+                )}
+                {submission.smbpScore !== undefined && (
+                  <div className="w-12 h-12 rounded-full bg-secondary border border-emerald/30 flex items-center justify-center" title="Social Breakout">
+                    <span className="text-sm font-bold text-emerald">{submission.smbpScore.toFixed(1)}</span>
                   </div>
                 )}
               </div>
