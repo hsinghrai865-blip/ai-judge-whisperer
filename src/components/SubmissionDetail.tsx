@@ -134,7 +134,11 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socia
     <AudioUploader
       submissionId={submission.id}
       analysisStatus={submission.contentType === "audio" ? "none" : undefined}
+      onAnalysisComplete={(s) => setAudioScores(s)}
     />
+
+    {/* Audio Analysis Scores */}
+    {audioScores && <AudioAnalysisScores scores={audioScores} />}
 
     {/* Vocal DNA Card */}
     {vocalDNA && <VocalDNACard data={vocalDNA} />}
