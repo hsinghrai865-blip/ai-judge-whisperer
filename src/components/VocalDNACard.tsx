@@ -26,10 +26,15 @@ interface VocalDNACardProps {
   data: VocalDNA;
 }
 
-const MetricBar = ({ label, value, max = 100, delay = 0, unit = "%" }: { label: string; value: number; max?: number; delay?: number; unit?: string }) => (
+const MetricBar = ({ label, value, max = 100, delay = 0, unit = "%", estimated = false }: { label: string; value: number; max?: number; delay?: number; unit?: string; estimated?: boolean }) => (
   <div>
     <div className="flex items-center justify-between mb-2">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+      <div className="flex items-center gap-1.5">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+        {estimated && (
+          <span className="text-[10px] font-medium text-gold/70 bg-gold/8 px-1.5 py-0.5 rounded-full leading-none">est.</span>
+        )}
+      </div>
       <span className="text-sm font-bold text-foreground">{value.toFixed(1)}{unit === "%" ? "%" : ` ${unit}`}</span>
     </div>
     {unit === "%" && (
@@ -38,7 +43,7 @@ const MetricBar = ({ label, value, max = 100, delay = 0, unit = "%" }: { label: 
           initial={{ width: 0 }}
           animate={{ width: `${Math.min((value / max) * 100, 100)}%` }}
           transition={{ duration: 1, delay, ease: "easeOut" }}
-          className="h-full rounded-full bg-gradient-gold shadow-gold"
+          className={`h-full rounded-full shadow-gold ${estimated ? "bg-gradient-gold opacity-60" : "bg-gradient-gold"}`}
         />
       </div>
     )}
