@@ -90,6 +90,8 @@ const Index = () => {
             toneProfiles: vd.tone_profiles,
             genreProbabilities: vd.genre_probabilities as { genre: string; probability: number }[],
             performanceEnergy: Number(vd.performance_energy),
+            isPlaceholder: (vd as any).is_placeholder ?? true,
+            analysisEngine: (vd as any).analysis_engine ?? null,
           };
         }
 

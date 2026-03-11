@@ -254,6 +254,9 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       tone_profiles: vdna.toneProfiles,
       genre_probabilities: vdna.genreProbabilities,
       performance_energy: vdna.performanceEnergy,
+      analysis_status: "ai_estimated",
+      analysis_engine: "google/gemini-3-flash-preview",
+      is_placeholder: true,
     });
     if (dnaErr) console.error("Failed to save vocal DNA:", dnaErr);
 

@@ -5,6 +5,8 @@ import ScoreBar from "./ScoreBar";
 import VocalDNACard, { type VocalDNA } from "./VocalDNACard";
 import ArtistPotentialCard, { type ArtistPotential } from "./ArtistPotentialCard";
 import SocialBreakoutCard, { type SocialBreakout } from "./SocialBreakoutCard";
+import AudioUploader from "./AudioUploader";
+import AnalysisArchitectureCard from "./AnalysisArchitectureCard";
 import type { Submission } from "./SubmissionCard";
 
 interface AIScores {
@@ -123,6 +125,12 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socia
       </div>
     )}
 
+    {/* Audio Upload */}
+    <AudioUploader
+      submissionId={submission.id}
+      analysisStatus={submission.contentType === "audio" ? "none" : undefined}
+    />
+
     {/* Vocal DNA Card */}
     {vocalDNA && <VocalDNACard data={vocalDNA} />}
 
@@ -131,6 +139,9 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socia
 
     {/* Social Breakout Potential Card */}
     {socialBreakout && <SocialBreakoutCard data={socialBreakout} />}
+
+    {/* Architecture Overview */}
+    {scores && <AnalysisArchitectureCard />}
   </motion.div>
 );
 

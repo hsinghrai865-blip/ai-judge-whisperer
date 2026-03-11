@@ -11,6 +11,8 @@ export interface VocalDNA {
   toneProfiles: string[];
   genreProbabilities: { genre: string; probability: number }[];
   performanceEnergy: number;
+  isPlaceholder?: boolean;
+  analysisEngine?: string | null;
 }
 
 interface VocalDNACardProps {
@@ -38,8 +40,15 @@ const VocalDNACard = ({ data }: VocalDNACardProps) => {
         </div>
         <div>
           <h3 className="font-serif text-xl font-bold text-foreground">Vocal DNA</h3>
-          <p className="text-xs text-muted-foreground">AI-generated vocal analysis profile</p>
+          <p className="text-xs text-muted-foreground">
+            {data.isPlaceholder !== false ? "AI-estimated vocal profile (not signal-analyzed)" : `Analyzed by ${data.analysisEngine || "engine"}`}
+          </p>
         </div>
+        {data.isPlaceholder !== false && (
+          <span className="ml-auto px-2.5 py-1 rounded-full text-xs font-medium bg-gold/10 text-gold border border-gold/20">
+            AI Estimated
+          </span>
+        )}
       </div>
 
       <div className="space-y-6 relative">

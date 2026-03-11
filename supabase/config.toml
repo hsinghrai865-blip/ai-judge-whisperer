@@ -2,3 +2,6 @@ project_id = "ixhlezprhuxerglmaljk"
 
 [functions.ai-judge]
 verify_jwt = false
+
+[functions.audio-analysis-webhook]
+verify_jwt = false
