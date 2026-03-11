@@ -171,9 +171,11 @@ export type Database = {
           description: string | null
           external_id: string | null
           id: string
+          origin: string | null
           platform: Database["public"]["Enums"]["platform_source"]
           status: Database["public"]["Enums"]["submission_status"]
           submitted_at: string
+          submitter_email: string | null
           title: string
           updated_at: string
         }
@@ -189,9 +191,11 @@ export type Database = {
           description?: string | null
           external_id?: string | null
           id?: string
+          origin?: string | null
           platform: Database["public"]["Enums"]["platform_source"]
           status?: Database["public"]["Enums"]["submission_status"]
           submitted_at?: string
+          submitter_email?: string | null
           title: string
           updated_at?: string
         }
@@ -207,9 +211,11 @@ export type Database = {
           description?: string | null
           external_id?: string | null
           id?: string
+          origin?: string | null
           platform?: Database["public"]["Enums"]["platform_source"]
           status?: Database["public"]["Enums"]["submission_status"]
           submitted_at?: string
+          submitter_email?: string | null
           title?: string
           updated_at?: string
         }
