@@ -31,7 +31,10 @@ interface SubmissionDetailProps {
   isJudging: boolean;
 }
 
-const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socialBreakout, onBack, onJudge, isJudging }: SubmissionDetailProps) => (
+const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socialBreakout, onBack, onJudge, isJudging }: SubmissionDetailProps) => {
+  const [audioScores, setAudioScores] = useState<AudioScores | null>(null);
+
+  return (
   <motion.div
     initial={{ opacity: 0, x: 20 }}
     animate={{ opacity: 1, x: 0 }}
