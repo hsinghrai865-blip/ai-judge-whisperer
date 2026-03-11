@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Music, Sparkles, User, Calendar, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import VocalDNACard, { type VocalDNA } from "./VocalDNACard";
 import ArtistPotentialCard, { type ArtistPotential } from "./ArtistPotentialCard";
 import SocialBreakoutCard, { type SocialBreakout } from "./SocialBreakoutCard";
 import AudioUploader from "./AudioUploader";
+import AudioAnalysisScores, { type AudioScores } from "./AudioAnalysisScores";
 import AnalysisArchitectureCard from "./AnalysisArchitectureCard";
 import type { Submission } from "./SubmissionCard";
 
@@ -29,7 +31,10 @@ interface SubmissionDetailProps {
   isJudging: boolean;
 }
 
-const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socialBreakout, onBack, onJudge, isJudging }: SubmissionDetailProps) => (
+const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socialBreakout, onBack, onJudge, isJudging }: SubmissionDetailProps) => {
+  const [audioScores, setAudioScores] = useState<AudioScores | null>(null);
+
+  return (
   <motion.div
     initial={{ opacity: 0, x: 20 }}
     animate={{ opacity: 1, x: 0 }}
@@ -129,7 +134,11 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socia
     <AudioUploader
       submissionId={submission.id}
       analysisStatus={submission.contentType === "audio" ? "none" : undefined}
+      onAnalysisComplete={(s) => setAudioScores(s)}
     />
+
+    {/* Audio Analysis Scores */}
+    {audioScores && <AudioAnalysisScores scores={audioScores} />}
 
     {/* Vocal DNA Card */}
     {vocalDNA && <VocalDNACard data={vocalDNA} />}
@@ -143,6 +152,7 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socia
     {/* Architecture Overview */}
     {scores && <AnalysisArchitectureCard />}
   </motion.div>
-);
+  );
+};
 
 export default SubmissionDetail;
