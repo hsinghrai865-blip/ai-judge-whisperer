@@ -11,6 +11,8 @@ export interface VocalDNA {
   toneProfiles: string[];
   genreProbabilities: { genre: string; probability: number }[];
   performanceEnergy: number;
+  isPlaceholder?: boolean;
+  analysisEngine?: string | null;
 }
 
 interface VocalDNACardProps {
