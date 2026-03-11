@@ -123,6 +123,9 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, onBac
 
     {/* Vocal DNA Card */}
     {vocalDNA && <VocalDNACard data={vocalDNA} />}
+
+    {/* Artist Potential Index Card */}
+    {artistPotential && <ArtistPotentialCard data={artistPotential} />}
   </motion.div>
 );
 
