@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import Submit from "./pages/Submit";
 import Leaderboard from "./pages/Leaderboard";
 import NotFound from "./pages/NotFound";
 
