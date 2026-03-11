@@ -208,6 +208,7 @@ const Index = () => {
               key="detail"
               submission={selected}
               scores={scores[selected.id]}
+              vocalDNA={vocalDNAs[selected.id]}
               onBack={() => setSelectedId(null)}
               onJudge={handleJudge}
               isJudging={isJudging}
