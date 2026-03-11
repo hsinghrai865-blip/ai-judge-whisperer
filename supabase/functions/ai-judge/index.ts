@@ -87,7 +87,7 @@ LAYER 4 - SOCIAL BREAKOUT POTENTIAL (viral/short-form platform analysis):
 
 Be fair but discerning. Provide specific, constructive analysis.`;
 
-    const userPrompt = `Evaluate this submission with all three layers (Performance, Vocal DNA, Artist Potential Index):
+    const userPrompt = `Evaluate this submission with all four layers (Performance, Vocal DNA, Artist Potential Index, Social Breakout Potential):
 
 Title: ${submission.title}
 Artist: ${submission.artist_name}
