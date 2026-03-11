@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
-import { Mic, Music, Zap, Radio } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { Mic, Music, Zap, Radio, Activity, Gauge, Waves } from "lucide-react";
 
 export interface VocalDNA {
   vocalRangeLow: string;
@@ -13,14 +12,42 @@ export interface VocalDNA {
   performanceEnergy: number;
   isPlaceholder?: boolean;
   analysisEngine?: string | null;
+  // Essentia signal-processed fields
+  timingAccuracy?: number;
+  tempoBpm?: number;
+  energyScore?: number;
+  spectralBrightness?: number;
+  dynamicRange?: number;
+  onsetStrength?: number;
+  vocalConfidence?: number;
 }
 
 interface VocalDNACardProps {
   data: VocalDNA;
 }
 
+const MetricBar = ({ label, value, max = 100, delay = 0, unit = "%" }: { label: string; value: number; max?: number; delay?: number; unit?: string }) => (
+  <div>
+    <div className="flex items-center justify-between mb-2">
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+      <span className="text-sm font-bold text-foreground">{value.toFixed(1)}{unit === "%" ? "%" : ` ${unit}`}</span>
+    </div>
+    {unit === "%" && (
+      <div className="relative h-2.5 w-full rounded-full bg-secondary overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${Math.min((value / max) * 100, 100)}%` }}
+          transition={{ duration: 1, delay, ease: "easeOut" }}
+          className="h-full rounded-full bg-gradient-gold shadow-gold"
+        />
+      </div>
+    )}
+  </div>
+);
+
 const VocalDNACard = ({ data }: VocalDNACardProps) => {
   const maxGenreProb = Math.max(...data.genreProbabilities.map((g) => g.probability), 1);
+  const isSignalProcessed = data.isPlaceholder === false;
 
   return (
     <motion.div
@@ -41,14 +68,18 @@ const VocalDNACard = ({ data }: VocalDNACardProps) => {
         <div>
           <h3 className="font-serif text-xl font-bold text-foreground">Vocal DNA</h3>
           <p className="text-xs text-muted-foreground">
-            {data.isPlaceholder !== false ? "AI-estimated vocal profile (not signal-analyzed)" : `Analyzed by ${data.analysisEngine || "engine"}`}
+            {isSignalProcessed
+              ? `Signal-processed by ${data.analysisEngine || "Essentia"}`
+              : "AI-estimated vocal profile (not signal-analyzed)"}
           </p>
         </div>
-        {data.isPlaceholder !== false && (
-          <span className="ml-auto px-2.5 py-1 rounded-full text-xs font-medium bg-gold/10 text-gold border border-gold/20">
-            AI Estimated
-          </span>
-        )}
+        <span className={`ml-auto px-2.5 py-1 rounded-full text-xs font-medium border ${
+          isSignalProcessed
+            ? "bg-emerald/10 text-emerald border-emerald/20"
+            : "bg-gold/10 text-gold border-gold/20"
+        }`}>
+          {isSignalProcessed ? "Signal Processed" : "AI Estimated"}
+        </span>
       </div>
 
       <div className="space-y-6 relative">
@@ -68,37 +99,37 @@ const VocalDNACard = ({ data }: VocalDNACardProps) => {
           </div>
         </div>
 
-        {/* Pitch Accuracy */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pitch Accuracy</p>
-            <span className="text-sm font-bold text-foreground">{data.pitchAccuracy}%</span>
-          </div>
-          <div className="relative h-2.5 w-full rounded-full bg-secondary overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${data.pitchAccuracy}%` }}
-              transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-              className="h-full rounded-full bg-gradient-gold shadow-gold"
-            />
-          </div>
-        </div>
+        {/* Core metrics */}
+        <MetricBar label="Pitch Accuracy" value={data.pitchAccuracy} delay={0.5} />
+        <MetricBar label="Timing Accuracy" value={data.timingAccuracy ?? data.rhythmTiming} delay={0.6} />
 
-        {/* Rhythm Timing */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Timing Accuracy</p>
-            <span className="text-sm font-bold text-foreground">{data.rhythmTiming}%</span>
-          </div>
-          <div className="relative h-2.5 w-full rounded-full bg-secondary overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${data.rhythmTiming}%` }}
-              transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
-              className="h-full rounded-full bg-gradient-gold shadow-gold"
-            />
-          </div>
-        </div>
+        {/* Essentia signal-processed metrics */}
+        {isSignalProcessed && (
+          <>
+            <div className="pt-4 border-t border-border">
+              <div className="flex items-center gap-2 mb-4">
+                <Waves className="w-4 h-4 text-gold" />
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Signal Metrics</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-secondary/50 rounded-xl p-4 text-center">
+                  <Gauge className="w-4 h-4 text-gold mx-auto mb-1" />
+                  <p className="text-2xl font-serif font-bold text-foreground">{(data.tempoBpm ?? 0).toFixed(0)}</p>
+                  <p className="text-xs text-muted-foreground">Tempo BPM</p>
+                </div>
+                <div className="bg-secondary/50 rounded-xl p-4 text-center">
+                  <Activity className="w-4 h-4 text-gold mx-auto mb-1" />
+                  <p className="text-2xl font-serif font-bold text-foreground">{(data.vocalConfidence ?? 0).toFixed(1)}%</p>
+                  <p className="text-xs text-muted-foreground">Vocal Confidence</p>
+                </div>
+              </div>
+            </div>
+
+            <MetricBar label="Spectral Brightness" value={data.spectralBrightness ?? 0} delay={0.7} />
+            <MetricBar label="Dynamic Range" value={data.dynamicRange ?? 0} delay={0.8} />
+            <MetricBar label="Onset Strength" value={data.onsetStrength ?? 0} delay={0.9} />
+          </>
+        )}
 
         {/* Tone Profile */}
         <div>
@@ -148,10 +179,14 @@ const VocalDNACard = ({ data }: VocalDNACardProps) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-gold" />
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Performance Energy</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                {isSignalProcessed ? "Energy Score" : "Performance Energy"}
+              </p>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-serif font-bold text-gradient-gold">{data.performanceEnergy.toFixed(1)}</span>
+              <span className="text-2xl font-serif font-bold text-gradient-gold">
+                {(data.energyScore ?? data.performanceEnergy).toFixed(1)}
+              </span>
               <span className="text-xs text-muted-foreground">/ 10</span>
             </div>
           </div>
