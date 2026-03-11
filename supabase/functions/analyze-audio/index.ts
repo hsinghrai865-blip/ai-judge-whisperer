@@ -35,16 +35,33 @@ serve(async (req) => {
       .update({ audio_analysis_status: "analyzing" })
       .eq("id", submissionId);
 
-    // Download the audio file from storage
-    const audioResponse = await fetch(audioUrl);
-    if (!audioResponse.ok) {
-      throw new Error(`Failed to download audio file: ${audioResponse.status}`);
-    }
-    const audioBlob = await audioResponse.blob();
+    // Extract storage path from the public URL
+    const storagePathMatch = audioUrl.match(/audio-submissions\/(.+)$/);
+    let audioBlob: Blob;
+    let fileName: string;
 
-    // Determine filename from URL
-    const urlParts = audioUrl.split("/");
-    const fileName = urlParts[urlParts.length - 1] || "audio.mp3";
+    if (storagePathMatch) {
+      // Download from private bucket using service role
+      const storagePath = decodeURIComponent(storagePathMatch[1]);
+      const { data: fileData, error: dlError } = await supabaseAdmin.storage
+        .from("audio-submissions")
+        .download(storagePath);
+
+      if (dlError || !fileData) {
+        throw new Error(`Failed to download audio from storage: ${dlError?.message || "No data"}`);
+      }
+      audioBlob = fileData;
+      fileName = storagePath.split("/").pop() || "audio.mp3";
+    } else {
+      // Fallback: direct fetch for external URLs
+      const audioResponse = await fetch(audioUrl);
+      if (!audioResponse.ok) {
+        throw new Error(`Failed to download audio file: ${audioResponse.status}`);
+      }
+      audioBlob = await audioResponse.blob();
+      const urlParts = audioUrl.split("/");
+      fileName = urlParts[urlParts.length - 1] || "audio.mp3";
+    }
 
     // Send to Essentia-powered Railway analysis engine
     const formData = new FormData();
