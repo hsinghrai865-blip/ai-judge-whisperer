@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Inbox, CheckCircle, BarChart3, Sparkles, Filter, RefreshCw } from "lucide-react";
+import { Inbox, CheckCircle, BarChart3, Sparkles, Filter, RefreshCw, TrendingUp, ArrowUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardHeader from "@/components/DashboardHeader";
@@ -8,11 +8,13 @@ import StatsCard from "@/components/StatsCard";
 import SubmissionCard, { type Submission } from "@/components/SubmissionCard";
 import SubmissionDetail from "@/components/SubmissionDetail";
 import type { VocalDNA } from "@/components/VocalDNACard";
+import type { ArtistPotential } from "@/components/ArtistPotentialCard";
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-bg.jpg";
 
 type FilterType = "all" | "pending" | "judging" | "scored";
 type PlatformFilter = "all" | "casablanca" | "growth-tour";
+type SortType = "newest" | "highest-ai" | "highest-api" | "highest-commercial" | "highest-growth" | "highest-replay";
 
 interface AIScores {
   technicalSkill: number;
@@ -23,13 +25,24 @@ interface AIScores {
   feedback: string;
 }
 
+const sortLabels: Record<SortType, string> = {
+  "newest": "Newest",
+  "highest-ai": "AI Score",
+  "highest-api": "API Score",
+  "highest-commercial": "Commercial",
+  "highest-growth": "Growth",
+  "highest-replay": "Replay",
+};
+
 const Index = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [scores, setScores] = useState<Record<string, AIScores>>({});
   const [vocalDNAs, setVocalDNAs] = useState<Record<string, VocalDNA>>({});
+  const [artistPotentials, setArtistPotentials] = useState<Record<string, ArtistPotential>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>("all");
+  const [sortBy, setSortBy] = useState<SortType>("newest");
   const [isJudging, setIsJudging] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -37,28 +50,18 @@ const Index = () => {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch submissions with their scores and vocal DNA
       const { data: subs, error: subErr } = await supabase
         .from("submissions")
-        .select("*, ai_scores(*), vocal_dna(*)")
+        .select("*, ai_scores(*), vocal_dna(*), artist_potential_index(*)")
         .order("submitted_at", { ascending: false });
 
       if (subErr) throw subErr;
 
-      const mapped: Submission[] = (subs || []).map((s) => ({
-        id: s.id,
-        title: s.title,
-        artist: s.artist_name,
-        category: s.category,
-        platform: s.platform as "casablanca" | "growth-tour",
-        status: s.status as "pending" | "judging" | "scored",
-        overallScore: s.ai_scores?.[0]?.overall_score ?? undefined,
-        submittedAt: new Date(s.submitted_at).toLocaleDateString(),
-        contentType: s.content_type,
-      }));
-
+      const apiMap: Record<string, ArtistPotential> = {};
+      const dnaMap: Record<string, VocalDNA> = {};
       const scoresMap: Record<string, AIScores> = {};
-      (subs || []).forEach((s) => {
+
+      const mapped: Submission[] = (subs || []).map((s: any) => {
         const sc = s.ai_scores?.[0];
         if (sc) {
           scoresMap[s.id] = {
@@ -70,9 +73,7 @@ const Index = () => {
             feedback: sc.feedback,
           };
         }
-      });
-      const dnaMap: Record<string, VocalDNA> = {};
-      (subs || []).forEach((s: any) => {
+
         const vd = s.vocal_dna?.[0];
         if (vd) {
           dnaMap[s.id] = {
@@ -86,11 +87,39 @@ const Index = () => {
             performanceEnergy: Number(vd.performance_energy),
           };
         }
+
+        const ap = s.artist_potential_index?.[0];
+        if (ap) {
+          apiMap[s.id] = {
+            overallScore: Number(ap.overall_score),
+            commercialAppeal: Number(ap.commercial_appeal),
+            memorability: Number(ap.memorability),
+            replayValue: Number(ap.replay_value),
+            brandIdentityPotential: Number(ap.brand_identity_potential),
+            growthPotential: Number(ap.growth_potential),
+            marketFit: ap.market_fit as { market: string; confidence: number }[],
+            aiSummary: ap.ai_summary,
+          };
+        }
+
+        return {
+          id: s.id,
+          title: s.title,
+          artist: s.artist_name,
+          category: s.category,
+          platform: s.platform as "casablanca" | "growth-tour",
+          status: s.status as "pending" | "judging" | "scored",
+          overallScore: sc ? Number(sc.overall_score) : undefined,
+          apiScore: ap ? Number(ap.overall_score) : undefined,
+          submittedAt: new Date(s.submitted_at).toLocaleDateString(),
+          contentType: s.content_type,
+        };
       });
 
       setSubmissions(mapped);
       setScores(scoresMap);
       setVocalDNAs(dnaMap);
+      setArtistPotentials(apiMap);
     } catch (err) {
       console.error("Failed to fetch data:", err);
     } finally {
@@ -102,11 +131,34 @@ const Index = () => {
     fetchData();
   }, [fetchData]);
 
-  const filtered = submissions.filter((s) => {
-    if (filter !== "all" && s.status !== filter) return false;
-    if (platformFilter !== "all" && s.platform !== platformFilter) return false;
-    return true;
-  });
+  const filtered = useMemo(() => {
+    let list = submissions.filter((s) => {
+      if (filter !== "all" && s.status !== filter) return false;
+      if (platformFilter !== "all" && s.platform !== platformFilter) return false;
+      return true;
+    });
+
+    if (sortBy !== "newest") {
+      list = [...list].sort((a, b) => {
+        switch (sortBy) {
+          case "highest-ai":
+            return (b.overallScore ?? 0) - (a.overallScore ?? 0);
+          case "highest-api":
+            return (b.apiScore ?? 0) - (a.apiScore ?? 0);
+          case "highest-commercial":
+            return (artistPotentials[b.id]?.commercialAppeal ?? 0) - (artistPotentials[a.id]?.commercialAppeal ?? 0);
+          case "highest-growth":
+            return (artistPotentials[b.id]?.growthPotential ?? 0) - (artistPotentials[a.id]?.growthPotential ?? 0);
+          case "highest-replay":
+            return (artistPotentials[b.id]?.replayValue ?? 0) - (artistPotentials[a.id]?.replayValue ?? 0);
+          default:
+            return 0;
+        }
+      });
+    }
+
+    return list;
+  }, [submissions, filter, platformFilter, sortBy, artistPotentials]);
 
   const selected = submissions.find((s) => s.id === selectedId);
 
@@ -114,7 +166,6 @@ const Index = () => {
     if (!selected) return;
     setIsJudging(true);
 
-    // Optimistic UI update
     setSubmissions((prev) =>
       prev.map((s) => (s.id === selected.id ? { ...s, status: "judging" as const } : s))
     );
@@ -127,20 +178,24 @@ const Index = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      // Update local state with real scores and vocal DNA
       setScores((prev) => ({ ...prev, [selected.id]: data }));
       if (data.vocalDNA) {
         setVocalDNAs((prev) => ({ ...prev, [selected.id]: data.vocalDNA }));
       }
+      if (data.artistPotentialIndex) {
+        setArtistPotentials((prev) => ({ ...prev, [selected.id]: data.artistPotentialIndex }));
+      }
       setSubmissions((prev) =>
         prev.map((s) =>
-          s.id === selected.id ? { ...s, status: "scored" as const, overallScore: data.overall } : s
+          s.id === selected.id
+            ? { ...s, status: "scored" as const, overallScore: data.overall, apiScore: data.artistPotentialIndex?.overallScore }
+            : s
         )
       );
 
       toast({
         title: "AI Evaluation Complete",
-        description: `${selected.title} scored ${data.overall}/10`,
+        description: `${selected.title} — AI: ${data.overall}/10 | API: ${data.artistPotentialIndex?.overallScore?.toFixed(1) ?? "N/A"}/10`,
       });
     } catch (err: any) {
       console.error("AI Judge error:", err);
@@ -158,12 +213,16 @@ const Index = () => {
   };
 
   const scoredSubs = submissions.filter((s) => s.overallScore !== undefined);
+  const apiScoredSubs = submissions.filter((s) => s.apiScore !== undefined);
   const stats = {
     total: submissions.length,
     pending: submissions.filter((s) => s.status === "pending").length,
     scored: scoredSubs.length,
     avgScore: scoredSubs.length > 0
       ? scoredSubs.reduce((a, s) => a + (s.overallScore || 0), 0) / scoredSubs.length
+      : 0,
+    avgApi: apiScoredSubs.length > 0
+      ? apiScoredSubs.reduce((a, s) => a + (s.apiScore || 0), 0) / apiScoredSubs.length
       : 0,
   };
 
@@ -195,11 +254,12 @@ const Index = () => {
 
       <div className="container mx-auto px-4 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <StatsCard icon={Inbox} label="Total Submissions" value={stats.total} delay={0} />
           <StatsCard icon={Sparkles} label="Pending Review" value={stats.pending} delay={0.1} />
           <StatsCard icon={CheckCircle} label="Scored" value={stats.scored} delay={0.2} />
-          <StatsCard icon={BarChart3} label="Avg Score" value={stats.avgScore.toFixed(1)} delay={0.3} />
+          <StatsCard icon={BarChart3} label="Avg AI Score" value={stats.avgScore.toFixed(1)} delay={0.3} />
+          <StatsCard icon={TrendingUp} label="Avg API Score" value={stats.avgApi.toFixed(1)} delay={0.4} />
         </div>
 
         <AnimatePresence mode="wait">
@@ -209,6 +269,7 @@ const Index = () => {
               submission={selected}
               scores={scores[selected.id]}
               vocalDNA={vocalDNAs[selected.id]}
+              artistPotential={artistPotentials[selected.id]}
               onBack={() => setSelectedId(null)}
               onJudge={handleJudge}
               isJudging={isJudging}
@@ -242,6 +303,21 @@ const Index = () => {
                       className={`text-xs capitalize ${platformFilter === p ? "bg-gradient-gold text-primary-foreground" : ""}`}
                     >
                       {p === "growth-tour" ? "Growth Tour" : p === "casablanca" ? "Casablanca" : "All Platforms"}
+                    </Button>
+                  ))}
+                </div>
+                <div className="w-px h-6 bg-border mx-1" />
+                <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
+                <div className="flex gap-1.5 flex-wrap">
+                  {(Object.keys(sortLabels) as SortType[]).map((s) => (
+                    <Button
+                      key={s}
+                      size="sm"
+                      variant={sortBy === s ? "default" : "secondary"}
+                      onClick={() => setSortBy(s)}
+                      className={`text-xs ${sortBy === s ? "bg-gradient-gold text-primary-foreground" : ""}`}
+                    >
+                      {sortLabels[s]}
                     </Button>
                   ))}
                 </div>
