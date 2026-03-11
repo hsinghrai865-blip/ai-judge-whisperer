@@ -7,6 +7,7 @@ import DashboardHeader from "@/components/DashboardHeader";
 import StatsCard from "@/components/StatsCard";
 import SubmissionCard, { type Submission } from "@/components/SubmissionCard";
 import SubmissionDetail from "@/components/SubmissionDetail";
+import type { VocalDNA } from "@/components/VocalDNACard";
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-bg.jpg";
 

@@ -118,6 +118,9 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, onBack, onJudge, isJud
         </Button>
       </div>
     )}
+
+    {/* Vocal DNA Card */}
+    {vocalDNA && <VocalDNACard data={vocalDNA} />}
   </motion.div>
 );
 
