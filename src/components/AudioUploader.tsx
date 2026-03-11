@@ -176,7 +176,7 @@ const AudioUploader = ({ submissionId, existingAudioUrl, analysisStatus, onUploa
           )}
 
           {/* Analysis pipeline status */}
-          {status !== "idle" && (
+          {(status as string) !== "idle" && (
             <div className="border-t border-border pt-4 mt-4">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Analysis Pipeline</p>
               <div className="space-y-2.5">
