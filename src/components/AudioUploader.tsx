@@ -190,7 +190,7 @@ const AudioUploader = ({ submissionId, existingAudioUrl, analysisStatus, onUploa
                   const currentIdx = steps.indexOf(status);
                   const stepIdx = steps.indexOf(s.step);
                   const isDone = stepIdx < currentIdx || status === "complete";
-                  const isCurrent = stepIdx === currentIdx && status !== "failed";
+                  const isCurrent = stepIdx === currentIdx && (status as string) !== "failed";
                   const isPending = stepIdx > currentIdx;
 
                   return (
