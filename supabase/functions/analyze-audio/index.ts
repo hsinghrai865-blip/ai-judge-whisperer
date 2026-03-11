@@ -46,7 +46,7 @@ serve(async (req) => {
     const urlParts = audioUrl.split("/");
     const fileName = urlParts[urlParts.length - 1] || "audio.mp3";
 
-    // Send to external analysis engine as multipart form-data
+    // Send to Essentia-powered Railway analysis engine
     const formData = new FormData();
     formData.append("file", audioBlob, fileName);
 
@@ -60,27 +60,44 @@ serve(async (req) => {
       throw new Error(`Analysis engine returned ${analysisResponse.status}: ${errText}`);
     }
 
-    const analysisResult = await analysisResponse.json();
+    const r = await analysisResponse.json();
 
-    // Store the analysis scores in the database
-    // Update vocal_dna with real analysis data
+    // Map Essentia response fields to vocal_dna columns
+    const pitchAccuracy = r.pitch_accuracy ?? 0;
+    const timingAccuracy = r.timing_accuracy ?? r.rhythm_stability ?? 0;
+    const tempoBpm = r.tempo_bpm ?? 0;
+    const energyScore = r.energy_score ?? r.tone_quality ?? 0;
+    const spectralBrightness = r.spectral_brightness ?? 0;
+    const dynamicRange = r.dynamic_range ?? 0;
+    const onsetStrength = r.onset_strength ?? 0;
+    const vocalConfidence = r.vocal_confidence ?? 0;
+    const overallScore = r.overall_score ?? 0;
+
+    // Store Essentia signal-processed results in vocal_dna
     const { error: upsertErr } = await supabaseAdmin
       .from("vocal_dna")
       .upsert(
         {
           submission_id: submissionId,
-          pitch_accuracy: analysisResult.pitch_accuracy ?? 0,
-          rhythm_timing: analysisResult.rhythm_stability ?? 0,
-          performance_energy: analysisResult.tone_quality ?? 0,
-          vocal_range_low: "N/A",
-          vocal_range_high: "N/A",
-          vocal_classification: "Analyzed",
-          tone_profiles: [],
-          genre_probabilities: [],
-          analysis_status: "signal_analyzed",
-          analysis_engine: "casablanca-audio-engine",
+          pitch_accuracy: pitchAccuracy,
+          rhythm_timing: timingAccuracy,
+          timing_accuracy: timingAccuracy,
+          performance_energy: energyScore,
+          energy_score: energyScore,
+          tempo_bpm: tempoBpm,
+          spectral_brightness: spectralBrightness,
+          dynamic_range: dynamicRange,
+          onset_strength: onsetStrength,
+          vocal_confidence: vocalConfidence,
+          vocal_range_low: r.vocal_range_low ?? "N/A",
+          vocal_range_high: r.vocal_range_high ?? "N/A",
+          vocal_classification: r.vocal_classification ?? "Analyzed",
+          tone_profiles: r.tone_profiles ?? [],
+          genre_probabilities: r.genre_probabilities ?? [],
+          analysis_status: "complete",
+          analysis_engine: "Essentia",
           is_placeholder: false,
-          analysis_raw_json: analysisResult,
+          analysis_raw_json: r,
         },
         { onConflict: "submission_id" }
       );
@@ -100,22 +117,22 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         scores: {
-          pitch_accuracy: analysisResult.pitch_accuracy,
-          rhythm_stability: analysisResult.rhythm_stability,
-          tone_quality: analysisResult.tone_quality,
-          overall_score: analysisResult.overall_score,
+          pitch_accuracy: pitchAccuracy,
+          timing_accuracy: timingAccuracy,
+          tempo_bpm: tempoBpm,
+          energy_score: energyScore,
+          spectral_brightness: spectralBrightness,
+          dynamic_range: dynamicRange,
+          onset_strength: onsetStrength,
+          vocal_confidence: vocalConfidence,
+          overall_score: overallScore,
         },
-        raw: analysisResult,
+        raw: r,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
     console.error("analyze-audio error:", e);
-
-    // Try to update status to failed if we have a submissionId
-    try {
-      const body = await new Response(e instanceof Error ? "" : "").text();
-    } catch {}
 
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),

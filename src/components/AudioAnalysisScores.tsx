@@ -4,8 +4,15 @@ import ScoreBar from "./ScoreBar";
 
 export interface AudioScores {
   pitch_accuracy: number;
-  rhythm_stability: number;
-  tone_quality: number;
+  timing_accuracy?: number;
+  rhythm_stability?: number;
+  tone_quality?: number;
+  tempo_bpm?: number;
+  energy_score?: number;
+  spectral_brightness?: number;
+  dynamic_range?: number;
+  onset_strength?: number;
+  vocal_confidence?: number;
   overall_score: number;
 }
 
@@ -26,7 +33,7 @@ const AudioAnalysisScores = ({ scores }: AudioAnalysisScoresProps) => (
       </div>
       <div className="flex-1">
         <h3 className="font-serif text-lg font-bold text-foreground">Audio Analysis</h3>
-        <p className="text-xs text-muted-foreground">Signal-processed by Casablanca Audio Engine</p>
+        <p className="text-xs text-muted-foreground">Signal-processed by Essentia</p>
       </div>
       <div className="w-14 h-14 rounded-full bg-gradient-gold flex items-center justify-center shadow-gold">
         <span className="text-lg font-bold text-primary-foreground">
@@ -37,8 +44,14 @@ const AudioAnalysisScores = ({ scores }: AudioAnalysisScoresProps) => (
 
     <div className="space-y-4">
       <ScoreBar label="Pitch Accuracy" score={scores.pitch_accuracy} maxScore={100} delay={0.1} />
-      <ScoreBar label="Rhythm Stability" score={scores.rhythm_stability} maxScore={100} delay={0.2} />
-      <ScoreBar label="Tone Quality" score={scores.tone_quality} maxScore={100} delay={0.3} />
+      <ScoreBar label="Timing Accuracy" score={scores.timing_accuracy ?? scores.rhythm_stability ?? 0} maxScore={100} delay={0.2} />
+      <ScoreBar label="Energy Score" score={scores.energy_score ?? scores.tone_quality ?? 0} maxScore={100} delay={0.3} />
+      {scores.spectral_brightness != null && (
+        <ScoreBar label="Spectral Brightness" score={scores.spectral_brightness} maxScore={100} delay={0.4} />
+      )}
+      {scores.vocal_confidence != null && (
+        <ScoreBar label="Vocal Confidence" score={scores.vocal_confidence} maxScore={100} delay={0.5} />
+      )}
     </div>
   </motion.div>
 );

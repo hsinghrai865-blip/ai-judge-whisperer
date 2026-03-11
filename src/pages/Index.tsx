@@ -92,6 +92,13 @@ const Index = () => {
             performanceEnergy: Number(vd.performance_energy),
             isPlaceholder: (vd as any).is_placeholder ?? true,
             analysisEngine: (vd as any).analysis_engine ?? null,
+            timingAccuracy: Number((vd as any).timing_accuracy ?? 0),
+            tempoBpm: Number((vd as any).tempo_bpm ?? 0),
+            energyScore: Number((vd as any).energy_score ?? 0),
+            spectralBrightness: Number((vd as any).spectral_brightness ?? 0),
+            dynamicRange: Number((vd as any).dynamic_range ?? 0),
+            onsetStrength: Number((vd as any).onset_strength ?? 0),
+            vocalConfidence: Number((vd as any).vocal_confidence ?? 0),
           };
         }
 
