@@ -26,10 +26,15 @@ interface VocalDNACardProps {
   data: VocalDNA;
 }
 
-const MetricBar = ({ label, value, max = 100, delay = 0, unit = "%" }: { label: string; value: number; max?: number; delay?: number; unit?: string }) => (
+const MetricBar = ({ label, value, max = 100, delay = 0, unit = "%", estimated = false }: { label: string; value: number; max?: number; delay?: number; unit?: string; estimated?: boolean }) => (
   <div>
     <div className="flex items-center justify-between mb-2">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+      <div className="flex items-center gap-1.5">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+        {estimated && (
+          <span className="text-[10px] font-medium text-gold/70 bg-gold/8 px-1.5 py-0.5 rounded-full leading-none">est.</span>
+        )}
+      </div>
       <span className="text-sm font-bold text-foreground">{value.toFixed(1)}{unit === "%" ? "%" : ` ${unit}`}</span>
     </div>
     {unit === "%" && (
@@ -38,7 +43,7 @@ const MetricBar = ({ label, value, max = 100, delay = 0, unit = "%" }: { label: 
           initial={{ width: 0 }}
           animate={{ width: `${Math.min((value / max) * 100, 100)}%` }}
           transition={{ duration: 1, delay, ease: "easeOut" }}
-          className="h-full rounded-full bg-gradient-gold shadow-gold"
+          className={`h-full rounded-full shadow-gold ${estimated ? "bg-gradient-gold opacity-60" : "bg-gradient-gold"}`}
         />
       </div>
     )}
@@ -48,6 +53,8 @@ const MetricBar = ({ label, value, max = 100, delay = 0, unit = "%" }: { label: 
 const VocalDNACard = ({ data }: VocalDNACardProps) => {
   const maxGenreProb = Math.max(...data.genreProbabilities.map((g) => g.probability), 1);
   const isSignalProcessed = data.isPlaceholder === false;
+  const isEstimated = !isSignalProcessed;
+  const hasSignalData = (data.tempoBpm ?? 0) > 0 || (data.spectralBrightness ?? 0) > 0 || (data.vocalConfidence ?? 0) > 0;
 
   return (
     <motion.div
@@ -100,24 +107,27 @@ const VocalDNACard = ({ data }: VocalDNACardProps) => {
         </div>
 
         {/* Core metrics */}
-        <MetricBar label="Pitch Accuracy" value={data.pitchAccuracy} delay={0.5} />
-        <MetricBar label="Timing Accuracy" value={data.timingAccuracy ?? data.rhythmTiming} delay={0.6} />
+        <MetricBar label="Pitch Accuracy" value={data.pitchAccuracy} delay={0.5} estimated={isEstimated} />
+        <MetricBar label="Timing Accuracy" value={data.timingAccuracy ?? data.rhythmTiming} delay={0.6} estimated={isEstimated} />
 
-        {/* Essentia signal-processed metrics */}
-        {isSignalProcessed && (
+        {/* Signal metrics — shown for both modes when data exists */}
+        {hasSignalData && (
           <>
             <div className="pt-4 border-t border-border">
               <div className="flex items-center gap-2 mb-4">
                 <Waves className="w-4 h-4 text-gold" />
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Signal Metrics</p>
+                {isEstimated && (
+                  <span className="text-[10px] font-medium text-gold/70 bg-gold/8 px-1.5 py-0.5 rounded-full leading-none">AI estimated</span>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-secondary/50 rounded-xl p-4 text-center">
+                <div className={`rounded-xl p-4 text-center ${isEstimated ? "bg-secondary/30 border border-dashed border-gold/15" : "bg-secondary/50"}`}>
                   <Gauge className="w-4 h-4 text-gold mx-auto mb-1" />
                   <p className="text-2xl font-serif font-bold text-foreground">{(data.tempoBpm ?? 0).toFixed(0)}</p>
                   <p className="text-xs text-muted-foreground">Tempo BPM</p>
                 </div>
-                <div className="bg-secondary/50 rounded-xl p-4 text-center">
+                <div className={`rounded-xl p-4 text-center ${isEstimated ? "bg-secondary/30 border border-dashed border-gold/15" : "bg-secondary/50"}`}>
                   <Activity className="w-4 h-4 text-gold mx-auto mb-1" />
                   <p className="text-2xl font-serif font-bold text-foreground">{(data.vocalConfidence ?? 0).toFixed(1)}%</p>
                   <p className="text-xs text-muted-foreground">Vocal Confidence</p>
@@ -125,9 +135,9 @@ const VocalDNACard = ({ data }: VocalDNACardProps) => {
               </div>
             </div>
 
-            <MetricBar label="Spectral Brightness" value={data.spectralBrightness ?? 0} delay={0.7} />
-            <MetricBar label="Dynamic Range" value={data.dynamicRange ?? 0} delay={0.8} />
-            <MetricBar label="Onset Strength" value={data.onsetStrength ?? 0} delay={0.9} />
+            <MetricBar label="Spectral Brightness" value={data.spectralBrightness ?? 0} delay={0.7} estimated={isEstimated} />
+            <MetricBar label="Dynamic Range" value={data.dynamicRange ?? 0} delay={0.8} estimated={isEstimated} />
+            <MetricBar label="Onset Strength" value={data.onsetStrength ?? 0} delay={0.9} estimated={isEstimated} />
           </>
         )}
 
