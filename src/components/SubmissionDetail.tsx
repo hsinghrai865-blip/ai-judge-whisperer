@@ -23,7 +23,7 @@ interface SubmissionDetailProps {
   isJudging: boolean;
 }
 
-const SubmissionDetail = ({ submission, scores, onBack, onJudge, isJudging }: SubmissionDetailProps) => (
+const SubmissionDetail = ({ submission, scores, vocalDNA, onBack, onJudge, isJudging }: SubmissionDetailProps) => (
   <motion.div
     initial={{ opacity: 0, x: 20 }}
     animate={{ opacity: 1, x: 0 }}
