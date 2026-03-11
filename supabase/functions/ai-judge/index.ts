@@ -47,17 +47,19 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are an expert talent judge and vocal analyst for music, poetry, performing arts, and creative expression competitions. You evaluate submissions from two platforms:
+    const systemPrompt = `You are an expert talent judge, vocal analyst, and A&R strategist for music, poetry, performing arts, and creative expression competitions. You evaluate submissions from two platforms:
 - Casablanca Vision: A music label focused on discovering artists blending Moroccan/North African sounds with global genres
 - Growth Tour: A youth talent platform for music, poetry, sports, creative expression, and aspirations
 
-You MUST evaluate every submission on exactly 4 criteria, each scored 0.0 to 10.0 (one decimal):
+You MUST produce THREE evaluation layers:
+
+LAYER 1 - PERFORMANCE SCORES (4 criteria, each 0.0-10.0):
 1. Technical Skill - execution quality, technique, proficiency
-2. Creativity & Originality - uniqueness, innovation, artistic vision  
+2. Creativity & Originality - uniqueness, innovation, artistic vision
 3. Emotional Impact - storytelling, audience connection, feeling evoked
 4. Potential - growth trajectory, market readiness, future promise
 
-You MUST also produce a Vocal DNA profile with:
+LAYER 2 - VOCAL DNA (vocal analysis profile):
 - Vocal range (low note and high note, e.g. "A2" and "F4")
 - Vocal classification (one of: Bass, Baritone, Tenor, Alto, Mezzo, Soprano)
 - Pitch accuracy (0-100 percentage)
@@ -66,9 +68,18 @@ You MUST also produce a Vocal DNA profile with:
 - Genre fit probabilities (3-5 genres with percentage 0-100)
 - Performance energy score (0.0-10.0)
 
-Be fair but discerning. Base vocal analysis on the submission content and category.`;
+LAYER 3 - ARTIST POTENTIAL INDEX (commercial breakout potential):
+- Commercial Appeal (0.0-10.0): suitability for streaming, radio, playlists
+- Memorability (0.0-10.0): how distinctive after one listen
+- Replay Value (0.0-10.0): likelihood listeners replay
+- Brand Identity Potential (0.0-10.0): recognizable style/character potential
+- Growth Potential (0.0-10.0): raw upside if developed by a label
+- Market Fit (3-5 markets with confidence 0-100, e.g. "Spain Pop", "Afro House", "Mediterranean Fusion", "Latin Crossover", "Indie Pop", "Club/Dance")
+- AI Summary (2-3 sentences on commercial promise and positioning)
 
-    const userPrompt = `Evaluate this submission and generate a Vocal DNA profile:
+Be fair but discerning. Provide specific, constructive analysis.`;
+
+    const userPrompt = `Evaluate this submission with all three layers (Performance, Vocal DNA, Artist Potential Index):
 
 Title: ${submission.title}
 Artist: ${submission.artist_name}
@@ -95,7 +106,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
             type: "function",
             function: {
               name: "submit_evaluation",
-              description: "Submit the structured evaluation scores, feedback, and vocal DNA profile.",
+              description: "Submit the complete three-layer evaluation.",
               parameters: {
                 type: "object",
                 properties: {
@@ -106,34 +117,57 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
                   feedback: { type: "string", description: "Detailed constructive feedback (2-4 sentences)" },
                   vocalDNA: {
                     type: "object",
-                    description: "Vocal DNA analysis profile",
                     properties: {
-                      vocalRangeLow: { type: "string", description: "Low note e.g. A2" },
-                      vocalRangeHigh: { type: "string", description: "High note e.g. F4" },
+                      vocalRangeLow: { type: "string" },
+                      vocalRangeHigh: { type: "string" },
                       vocalClassification: { type: "string", enum: ["Bass", "Baritone", "Tenor", "Alto", "Mezzo", "Soprano"] },
-                      pitchAccuracy: { type: "number", description: "0-100 percentage" },
-                      rhythmTiming: { type: "number", description: "0-100 percentage" },
-                      toneProfiles: { type: "array", items: { type: "string" }, description: "2-4 tonal descriptors" },
+                      pitchAccuracy: { type: "number" },
+                      rhythmTiming: { type: "number" },
+                      toneProfiles: { type: "array", items: { type: "string" } },
                       genreProbabilities: {
                         type: "array",
                         items: {
                           type: "object",
                           properties: {
                             genre: { type: "string" },
-                            probability: { type: "number", description: "0-100" },
+                            probability: { type: "number" },
                           },
                           required: ["genre", "probability"],
                           additionalProperties: false,
                         },
-                        description: "3-5 genre fits with probabilities",
                       },
-                      performanceEnergy: { type: "number", description: "0.0-10.0" },
+                      performanceEnergy: { type: "number" },
                     },
                     required: ["vocalRangeLow", "vocalRangeHigh", "vocalClassification", "pitchAccuracy", "rhythmTiming", "toneProfiles", "genreProbabilities", "performanceEnergy"],
                     additionalProperties: false,
                   },
+                  artistPotentialIndex: {
+                    type: "object",
+                    properties: {
+                      commercialAppeal: { type: "number", description: "0.0-10.0" },
+                      memorability: { type: "number", description: "0.0-10.0" },
+                      replayValue: { type: "number", description: "0.0-10.0" },
+                      brandIdentityPotential: { type: "number", description: "0.0-10.0" },
+                      growthPotential: { type: "number", description: "0.0-10.0" },
+                      marketFit: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            market: { type: "string" },
+                            confidence: { type: "number" },
+                          },
+                          required: ["market", "confidence"],
+                          additionalProperties: false,
+                        },
+                      },
+                      aiSummary: { type: "string", description: "2-3 sentence commercial analysis" },
+                    },
+                    required: ["commercialAppeal", "memorability", "replayValue", "brandIdentityPotential", "growthPotential", "marketFit", "aiSummary"],
+                    additionalProperties: false,
+                  },
                 },
-                required: ["technicalSkill", "creativityOriginality", "emotionalImpact", "potential", "feedback", "vocalDNA"],
+                required: ["technicalSkill", "creativityOriginality", "emotionalImpact", "potential", "feedback", "vocalDNA", "artistPotentialIndex"],
                 additionalProperties: false,
               },
             },
@@ -145,7 +179,6 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
 
     if (!response.ok) {
       await supabaseAdmin.from("submissions").update({ status: "pending" }).eq("id", submissionId);
-
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -171,7 +204,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       ((result.technicalSkill + result.creativityOriginality + result.emotionalImpact + result.potential) / 4) * 10
     ) / 10;
 
-    // Save scores
+    // Save AI scores
     const { error: scoreErr } = await supabaseAdmin.from("ai_scores").insert({
       submission_id: submissionId,
       technical_skill: result.technicalSkill,
@@ -188,7 +221,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       throw new Error("Failed to save scores");
     }
 
-    // Save vocal DNA
+    // Save Vocal DNA
     const vdna = result.vocalDNA;
     const { error: dnaErr } = await supabaseAdmin.from("vocal_dna").insert({
       submission_id: submissionId,
@@ -201,11 +234,26 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       genre_probabilities: vdna.genreProbabilities,
       performance_energy: vdna.performanceEnergy,
     });
+    if (dnaErr) console.error("Failed to save vocal DNA:", dnaErr);
 
-    if (dnaErr) {
-      console.error("Failed to save vocal DNA:", dnaErr);
-      // Non-fatal: scores are saved, continue
-    }
+    // Save Artist Potential Index
+    const api = result.artistPotentialIndex;
+    const apiOverall = Math.round(
+      ((api.commercialAppeal + api.memorability + api.replayValue + api.brandIdentityPotential + api.growthPotential) / 5) * 10
+    ) / 10;
+
+    const { error: apiErr } = await supabaseAdmin.from("artist_potential_index").insert({
+      submission_id: submissionId,
+      overall_score: apiOverall,
+      commercial_appeal: api.commercialAppeal,
+      memorability: api.memorability,
+      replay_value: api.replayValue,
+      brand_identity_potential: api.brandIdentityPotential,
+      growth_potential: api.growthPotential,
+      market_fit: api.marketFit,
+      ai_summary: api.aiSummary,
+    });
+    if (apiErr) console.error("Failed to save API scores:", apiErr);
 
     await supabaseAdmin.from("submissions").update({ status: "scored" }).eq("id", submissionId);
 
@@ -218,6 +266,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
         overall,
         feedback: result.feedback,
         vocalDNA: vdna,
+        artistPotentialIndex: { ...api, overallScore: apiOverall },
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

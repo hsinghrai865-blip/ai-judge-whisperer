@@ -61,6 +61,56 @@ export type Database = {
           },
         ]
       }
+      artist_potential_index: {
+        Row: {
+          ai_summary: string
+          brand_identity_potential: number
+          commercial_appeal: number
+          created_at: string
+          growth_potential: number
+          id: string
+          market_fit: Json
+          memorability: number
+          overall_score: number
+          replay_value: number
+          submission_id: string
+        }
+        Insert: {
+          ai_summary: string
+          brand_identity_potential: number
+          commercial_appeal: number
+          created_at?: string
+          growth_potential: number
+          id?: string
+          market_fit?: Json
+          memorability: number
+          overall_score: number
+          replay_value: number
+          submission_id: string
+        }
+        Update: {
+          ai_summary?: string
+          brand_identity_potential?: number
+          commercial_appeal?: number
+          created_at?: string
+          growth_potential?: number
+          id?: string
+          market_fit?: Json
+          memorability?: number
+          overall_score?: number
+          replay_value?: number
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_potential_index_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: true
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       submissions: {
         Row: {
           artist_name: string

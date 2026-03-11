@@ -9,6 +9,7 @@ export interface Submission {
   platform: "casablanca" | "growth-tour";
   status: "pending" | "judging" | "scored";
   overallScore?: number;
+  apiScore?: number;
   submittedAt: string;
   contentType: string;
 }
@@ -59,9 +60,18 @@ const SubmissionCard = ({ submission, index, onClick }: SubmissionCardProps) => 
               </h3>
               <p className="text-sm text-muted-foreground mt-0.5">{submission.artist}</p>
             </div>
-            {submission.status === "scored" && submission.overallScore !== undefined && (
-              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-gold flex items-center justify-center">
-                <span className="text-sm font-bold text-primary-foreground">{submission.overallScore.toFixed(1)}</span>
+            {submission.status === "scored" && (
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {submission.overallScore !== undefined && (
+                  <div className="w-12 h-12 rounded-full bg-gradient-gold flex items-center justify-center" title="AI Score">
+                    <span className="text-sm font-bold text-primary-foreground">{submission.overallScore.toFixed(1)}</span>
+                  </div>
+                )}
+                {submission.apiScore !== undefined && (
+                  <div className="w-12 h-12 rounded-full bg-secondary border border-gold/30 flex items-center justify-center" title="API Score">
+                    <span className="text-sm font-bold text-gold">{submission.apiScore.toFixed(1)}</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
