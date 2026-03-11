@@ -226,7 +226,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
     ) / 10;
 
     // Save AI scores
-    const { error: scoreErr } = await supabaseAdmin.from("ai_scores").insert({
+    const { error: scoreErr } = await supabaseAdmin.from("ai_scores").upsert({
       submission_id: submissionId,
       technical_skill: result.technicalSkill,
       creativity_originality: result.creativityOriginality,
@@ -234,7 +234,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       potential: result.potential,
       overall_score: overall,
       feedback: result.feedback,
-    });
+    }, { onConflict: "submission_id" });
 
     if (scoreErr) {
       console.error("Failed to save scores:", scoreErr);
@@ -244,7 +244,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
 
     // Save Vocal DNA
     const vdna = result.vocalDNA;
-    const { error: dnaErr } = await supabaseAdmin.from("vocal_dna").insert({
+    const { error: dnaErr } = await supabaseAdmin.from("vocal_dna").upsert({
       submission_id: submissionId,
       vocal_range_low: vdna.vocalRangeLow,
       vocal_range_high: vdna.vocalRangeHigh,
@@ -257,7 +257,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       analysis_status: "ai_estimated",
       analysis_engine: "google/gemini-3-flash-preview",
       is_placeholder: true,
-    });
+    }, { onConflict: "submission_id" });
     if (dnaErr) console.error("Failed to save vocal DNA:", dnaErr);
 
     // Save Artist Potential Index
@@ -266,7 +266,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       ((api.commercialAppeal + api.memorability + api.replayValue + api.brandIdentityPotential + api.growthPotential) / 5) * 10
     ) / 10;
 
-    const { error: apiErr } = await supabaseAdmin.from("artist_potential_index").insert({
+    const { error: apiErr } = await supabaseAdmin.from("artist_potential_index").upsert({
       submission_id: submissionId,
       overall_score: apiOverall,
       commercial_appeal: api.commercialAppeal,
@@ -276,7 +276,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       growth_potential: api.growthPotential,
       market_fit: api.marketFit,
       ai_summary: api.aiSummary,
-    });
+    }, { onConflict: "submission_id" });
     if (apiErr) console.error("Failed to save API scores:", apiErr);
 
     // Save Social Breakout Potential
@@ -285,7 +285,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       ((sbp.hookStrength + sbp.clipability + sbp.emotionalReactivity + sbp.danceCompatibility + sbp.discoveryPotential) / 5) * 10
     ) / 10;
 
-    const { error: sbpErr } = await supabaseAdmin.from("social_breakout_potential").insert({
+    const { error: sbpErr } = await supabaseAdmin.from("social_breakout_potential").upsert({
       submission_id: submissionId,
       overall_score: sbpOverall,
       hook_strength: sbp.hookStrength,
@@ -294,7 +294,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       dance_compatibility: sbp.danceCompatibility,
       discovery_potential: sbp.discoveryPotential,
       ai_summary: sbp.aiSummary,
-    });
+    }, { onConflict: "submission_id" });
     if (sbpErr) console.error("Failed to save social breakout:", sbpErr);
 
     await supabaseAdmin.from("submissions").update({ status: "scored" }).eq("id", submissionId);
