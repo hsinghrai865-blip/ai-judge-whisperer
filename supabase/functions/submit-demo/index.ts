@@ -43,6 +43,13 @@ serve(async (req) => {
         submitter_email: email,
         origin: "public-demo",
         status: "pending",
+        gender: gender || null,
+        age: age || null,
+        country: country || null,
+        languages: languages || null,
+        phone: phone || null,
+        social_handle: socialHandle || null,
+        years_experience: yearsExperience || null,
       })
       .select("id")
       .single();
