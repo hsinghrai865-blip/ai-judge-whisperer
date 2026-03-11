@@ -5,6 +5,8 @@ import ScoreBar from "./ScoreBar";
 import VocalDNACard, { type VocalDNA } from "./VocalDNACard";
 import ArtistPotentialCard, { type ArtistPotential } from "./ArtistPotentialCard";
 import SocialBreakoutCard, { type SocialBreakout } from "./SocialBreakoutCard";
+import AudioUploader from "./AudioUploader";
+import AnalysisArchitectureCard from "./AnalysisArchitectureCard";
 import type { Submission } from "./SubmissionCard";
 
 interface AIScores {
