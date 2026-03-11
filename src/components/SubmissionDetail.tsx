@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Music, Sparkles, User, Calendar, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import VocalDNACard, { type VocalDNA } from "./VocalDNACard";
 import ArtistPotentialCard, { type ArtistPotential } from "./ArtistPotentialCard";
 import SocialBreakoutCard, { type SocialBreakout } from "./SocialBreakoutCard";
 import AudioUploader from "./AudioUploader";
+import AudioAnalysisScores, { type AudioScores } from "./AudioAnalysisScores";
 import AnalysisArchitectureCard from "./AnalysisArchitectureCard";
 import type { Submission } from "./SubmissionCard";
 
