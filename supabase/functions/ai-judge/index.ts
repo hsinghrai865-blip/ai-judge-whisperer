@@ -51,7 +51,7 @@ serve(async (req) => {
 - Casablanca Vision: A music label focused on discovering artists blending Moroccan/North African sounds with global genres
 - Growth Tour: A youth talent platform for music, poetry, sports, creative expression, and aspirations
 
-You MUST produce THREE evaluation layers:
+You MUST produce FOUR evaluation layers:
 
 LAYER 1 - PERFORMANCE SCORES (4 criteria, each 0.0-10.0):
 1. Technical Skill - execution quality, technique, proficiency
@@ -74,8 +74,16 @@ LAYER 3 - ARTIST POTENTIAL INDEX (commercial breakout potential):
 - Replay Value (0.0-10.0): likelihood listeners replay
 - Brand Identity Potential (0.0-10.0): recognizable style/character potential
 - Growth Potential (0.0-10.0): raw upside if developed by a label
-- Market Fit (3-5 markets with confidence 0-100, e.g. "Spain Pop", "Afro House", "Mediterranean Fusion", "Latin Crossover", "Indie Pop", "Club/Dance")
+- Market Fit (3-5 markets with confidence 0-100)
 - AI Summary (2-3 sentences on commercial promise and positioning)
+
+LAYER 4 - SOCIAL BREAKOUT POTENTIAL (viral/short-form platform analysis):
+- Hook Strength (0.0-10.0): how strong the vocal melody or phrase hook is for short video clips
+- Clipability (0.0-10.0): how easily a 10-20 second section could be extracted for viral clips
+- Emotional Reactivity (0.0-10.0): likelihood listeners react emotionally to the voice/sound
+- Dance Compatibility (0.0-10.0): whether the rhythm could inspire dance trends or performance clips
+- Discovery Potential (0.0-10.0): likelihood the track performs well in algorithm-driven discovery feeds (TikTok, Reels, Shorts)
+- AI Summary (2-3 sentences on social/viral potential)
 
 Be fair but discerning. Provide specific, constructive analysis.`;
 
