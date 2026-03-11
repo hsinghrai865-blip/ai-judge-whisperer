@@ -161,6 +161,8 @@ export type Database = {
       submissions: {
         Row: {
           artist_name: string
+          audio_analysis_status: string
+          audio_url: string | null
           category: string
           content_text: string | null
           content_type: Database["public"]["Enums"]["content_type"]
@@ -177,6 +179,8 @@ export type Database = {
         }
         Insert: {
           artist_name: string
+          audio_analysis_status?: string
+          audio_url?: string | null
           category: string
           content_text?: string | null
           content_type: Database["public"]["Enums"]["content_type"]
@@ -193,6 +197,8 @@ export type Database = {
         }
         Update: {
           artist_name?: string
+          audio_analysis_status?: string
+          audio_url?: string | null
           category?: string
           content_text?: string | null
           content_type?: Database["public"]["Enums"]["content_type"]
@@ -211,9 +217,13 @@ export type Database = {
       }
       vocal_dna: {
         Row: {
+          analysis_engine: string | null
+          analysis_raw_json: Json | null
+          analysis_status: string
           created_at: string
           genre_probabilities: Json
           id: string
+          is_placeholder: boolean
           performance_energy: number
           pitch_accuracy: number
           rhythm_timing: number
@@ -224,9 +234,13 @@ export type Database = {
           vocal_range_low: string
         }
         Insert: {
+          analysis_engine?: string | null
+          analysis_raw_json?: Json | null
+          analysis_status?: string
           created_at?: string
           genre_probabilities?: Json
           id?: string
+          is_placeholder?: boolean
           performance_energy: number
           pitch_accuracy: number
           rhythm_timing: number
@@ -237,9 +251,13 @@ export type Database = {
           vocal_range_low: string
         }
         Update: {
+          analysis_engine?: string | null
+          analysis_raw_json?: Json | null
+          analysis_status?: string
           created_at?: string
           genre_probabilities?: Json
           id?: string
+          is_placeholder?: boolean
           performance_energy?: number
           pitch_accuracy?: number
           rhythm_timing?: number
