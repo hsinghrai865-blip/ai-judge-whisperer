@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { artistName, email, genre, audioUrl, fileName } = await req.json();
+    const { artistName, email, genre, gender, age, country, languages, phone, socialHandle, yearsExperience, audioUrl, fileName } = await req.json();
 
     if (!artistName || !email || !genre || !audioUrl) {
       return new Response(
