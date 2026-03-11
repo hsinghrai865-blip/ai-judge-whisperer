@@ -160,6 +160,7 @@ export type Database = {
       }
       submissions: {
         Row: {
+          age: number | null
           artist_name: string
           audio_analysis_status: string
           audio_url: string | null
@@ -167,19 +168,26 @@ export type Database = {
           content_text: string | null
           content_type: Database["public"]["Enums"]["content_type"]
           content_url: string | null
+          country: string | null
           created_at: string
           description: string | null
           external_id: string | null
+          gender: string | null
           id: string
+          languages: string | null
           origin: string | null
+          phone: string | null
           platform: Database["public"]["Enums"]["platform_source"]
+          social_handle: string | null
           status: Database["public"]["Enums"]["submission_status"]
           submitted_at: string
           submitter_email: string | null
           title: string
           updated_at: string
+          years_experience: string | null
         }
         Insert: {
+          age?: number | null
           artist_name: string
           audio_analysis_status?: string
           audio_url?: string | null
@@ -187,19 +195,26 @@ export type Database = {
           content_text?: string | null
           content_type: Database["public"]["Enums"]["content_type"]
           content_url?: string | null
+          country?: string | null
           created_at?: string
           description?: string | null
           external_id?: string | null
+          gender?: string | null
           id?: string
+          languages?: string | null
           origin?: string | null
+          phone?: string | null
           platform: Database["public"]["Enums"]["platform_source"]
+          social_handle?: string | null
           status?: Database["public"]["Enums"]["submission_status"]
           submitted_at?: string
           submitter_email?: string | null
           title: string
           updated_at?: string
+          years_experience?: string | null
         }
         Update: {
+          age?: number | null
           artist_name?: string
           audio_analysis_status?: string
           audio_url?: string | null
@@ -207,17 +222,23 @@ export type Database = {
           content_text?: string | null
           content_type?: Database["public"]["Enums"]["content_type"]
           content_url?: string | null
+          country?: string | null
           created_at?: string
           description?: string | null
           external_id?: string | null
+          gender?: string | null
           id?: string
+          languages?: string | null
           origin?: string | null
+          phone?: string | null
           platform?: Database["public"]["Enums"]["platform_source"]
+          social_handle?: string | null
           status?: Database["public"]["Enums"]["submission_status"]
           submitted_at?: string
           submitter_email?: string | null
           title?: string
           updated_at?: string
+          years_experience?: string | null
         }
         Relationships: []
       }
