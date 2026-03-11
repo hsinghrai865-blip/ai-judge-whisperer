@@ -266,7 +266,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       ((api.commercialAppeal + api.memorability + api.replayValue + api.brandIdentityPotential + api.growthPotential) / 5) * 10
     ) / 10;
 
-    const { error: apiErr } = await supabaseAdmin.from("artist_potential_index").insert({
+    const { error: apiErr } = await supabaseAdmin.from("artist_potential_index").upsert({
       submission_id: submissionId,
       overall_score: apiOverall,
       commercial_appeal: api.commercialAppeal,
@@ -276,7 +276,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       growth_potential: api.growthPotential,
       market_fit: api.marketFit,
       ai_summary: api.aiSummary,
-    });
+    }, { onConflict: "submission_id" });
     if (apiErr) console.error("Failed to save API scores:", apiErr);
 
     // Save Social Breakout Potential
