@@ -7,6 +7,7 @@ import DashboardHeader from "@/components/DashboardHeader";
 import StatsCard from "@/components/StatsCard";
 import SubmissionCard, { type Submission } from "@/components/SubmissionCard";
 import SubmissionDetail from "@/components/SubmissionDetail";
+import type { VocalDNA } from "@/components/VocalDNACard";
 import { Button } from "@/components/ui/button";
 import heroBg from "@/assets/hero-bg.jpg";
 
@@ -25,6 +26,7 @@ interface AIScores {
 const Index = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [scores, setScores] = useState<Record<string, AIScores>>({});
+  const [vocalDNAs, setVocalDNAs] = useState<Record<string, VocalDNA>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>("all");
@@ -35,10 +37,10 @@ const Index = () => {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch submissions with their scores
+      // Fetch submissions with their scores and vocal DNA
       const { data: subs, error: subErr } = await supabase
         .from("submissions")
-        .select("*, ai_scores(*)")
+        .select("*, ai_scores(*), vocal_dna(*)")
         .order("submitted_at", { ascending: false });
 
       if (subErr) throw subErr;
@@ -69,9 +71,26 @@ const Index = () => {
           };
         }
       });
+      const dnaMap: Record<string, VocalDNA> = {};
+      (subs || []).forEach((s: any) => {
+        const vd = s.vocal_dna?.[0];
+        if (vd) {
+          dnaMap[s.id] = {
+            vocalRangeLow: vd.vocal_range_low,
+            vocalRangeHigh: vd.vocal_range_high,
+            vocalClassification: vd.vocal_classification,
+            pitchAccuracy: Number(vd.pitch_accuracy),
+            rhythmTiming: Number(vd.rhythm_timing),
+            toneProfiles: vd.tone_profiles,
+            genreProbabilities: vd.genre_probabilities as { genre: string; probability: number }[],
+            performanceEnergy: Number(vd.performance_energy),
+          };
+        }
+      });
 
       setSubmissions(mapped);
       setScores(scoresMap);
+      setVocalDNAs(dnaMap);
     } catch (err) {
       console.error("Failed to fetch data:", err);
     } finally {
@@ -108,8 +127,11 @@ const Index = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      // Update local state with real scores
+      // Update local state with real scores and vocal DNA
       setScores((prev) => ({ ...prev, [selected.id]: data }));
+      if (data.vocalDNA) {
+        setVocalDNAs((prev) => ({ ...prev, [selected.id]: data.vocalDNA }));
+      }
       setSubmissions((prev) =>
         prev.map((s) =>
           s.id === selected.id ? { ...s, status: "scored" as const, overallScore: data.overall } : s
@@ -186,6 +208,7 @@ const Index = () => {
               key="detail"
               submission={selected}
               scores={scores[selected.id]}
+              vocalDNA={vocalDNAs[selected.id]}
               onBack={() => setSelectedId(null)}
               onJudge={handleJudge}
               isJudging={isJudging}

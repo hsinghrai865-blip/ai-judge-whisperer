@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Music, Sparkles, User, Calendar, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ScoreBar from "./ScoreBar";
+import VocalDNACard, { type VocalDNA } from "./VocalDNACard";
 import type { Submission } from "./SubmissionCard";
 
 interface AIScores {
@@ -16,12 +17,13 @@ interface AIScores {
 interface SubmissionDetailProps {
   submission: Submission;
   scores?: AIScores;
+  vocalDNA?: VocalDNA;
   onBack: () => void;
   onJudge: () => void;
   isJudging: boolean;
 }
 
-const SubmissionDetail = ({ submission, scores, onBack, onJudge, isJudging }: SubmissionDetailProps) => (
+const SubmissionDetail = ({ submission, scores, vocalDNA, onBack, onJudge, isJudging }: SubmissionDetailProps) => (
   <motion.div
     initial={{ opacity: 0, x: 20 }}
     animate={{ opacity: 1, x: 0 }}
@@ -116,6 +118,9 @@ const SubmissionDetail = ({ submission, scores, onBack, onJudge, isJudging }: Su
         </Button>
       </div>
     )}
+
+    {/* Vocal DNA Card */}
+    {vocalDNA && <VocalDNACard data={vocalDNA} />}
   </motion.div>
 );
 

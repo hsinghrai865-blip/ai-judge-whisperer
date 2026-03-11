@@ -26,7 +26,6 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Fetch submission from DB
     const { data: submission, error: fetchErr } = await supabaseAdmin
       .from("submissions")
       .select("*")
@@ -40,7 +39,6 @@ serve(async (req) => {
       });
     }
 
-    // Update status to judging
     await supabaseAdmin
       .from("submissions")
       .update({ status: "judging" })
@@ -49,7 +47,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are an expert talent judge for music, poetry, performing arts, and creative expression competitions. You evaluate submissions from two platforms:
+    const systemPrompt = `You are an expert talent judge and vocal analyst for music, poetry, performing arts, and creative expression competitions. You evaluate submissions from two platforms:
 - Casablanca Vision: A music label focused on discovering artists blending Moroccan/North African sounds with global genres
 - Growth Tour: A youth talent platform for music, poetry, sports, creative expression, and aspirations
 
@@ -59,9 +57,18 @@ You MUST evaluate every submission on exactly 4 criteria, each scored 0.0 to 10.
 3. Emotional Impact - storytelling, audience connection, feeling evoked
 4. Potential - growth trajectory, market readiness, future promise
 
-Be fair but discerning. Provide specific, constructive feedback referencing the actual submission content.`;
+You MUST also produce a Vocal DNA profile with:
+- Vocal range (low note and high note, e.g. "A2" and "F4")
+- Vocal classification (one of: Bass, Baritone, Tenor, Alto, Mezzo, Soprano)
+- Pitch accuracy (0-100 percentage)
+- Rhythm timing accuracy (0-100 percentage)
+- Tone profiles (2-4 descriptors from: Warm, Bright, Breathy, Raspy, Smooth, Powerful, Silky, Gritty, Rich, Airy, Mid-Forward, Dark, Nasal, Clear)
+- Genre fit probabilities (3-5 genres with percentage 0-100)
+- Performance energy score (0.0-10.0)
 
-    const userPrompt = `Evaluate this submission:
+Be fair but discerning. Base vocal analysis on the submission content and category.`;
+
+    const userPrompt = `Evaluate this submission and generate a Vocal DNA profile:
 
 Title: ${submission.title}
 Artist: ${submission.artist_name}
@@ -88,7 +95,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
             type: "function",
             function: {
               name: "submit_evaluation",
-              description: "Submit the structured evaluation scores and feedback for a talent submission.",
+              description: "Submit the structured evaluation scores, feedback, and vocal DNA profile.",
               parameters: {
                 type: "object",
                 properties: {
@@ -97,8 +104,36 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
                   emotionalImpact: { type: "number", description: "Score 0.0-10.0" },
                   potential: { type: "number", description: "Score 0.0-10.0" },
                   feedback: { type: "string", description: "Detailed constructive feedback (2-4 sentences)" },
+                  vocalDNA: {
+                    type: "object",
+                    description: "Vocal DNA analysis profile",
+                    properties: {
+                      vocalRangeLow: { type: "string", description: "Low note e.g. A2" },
+                      vocalRangeHigh: { type: "string", description: "High note e.g. F4" },
+                      vocalClassification: { type: "string", enum: ["Bass", "Baritone", "Tenor", "Alto", "Mezzo", "Soprano"] },
+                      pitchAccuracy: { type: "number", description: "0-100 percentage" },
+                      rhythmTiming: { type: "number", description: "0-100 percentage" },
+                      toneProfiles: { type: "array", items: { type: "string" }, description: "2-4 tonal descriptors" },
+                      genreProbabilities: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            genre: { type: "string" },
+                            probability: { type: "number", description: "0-100" },
+                          },
+                          required: ["genre", "probability"],
+                          additionalProperties: false,
+                        },
+                        description: "3-5 genre fits with probabilities",
+                      },
+                      performanceEnergy: { type: "number", description: "0.0-10.0" },
+                    },
+                    required: ["vocalRangeLow", "vocalRangeHigh", "vocalClassification", "pitchAccuracy", "rhythmTiming", "toneProfiles", "genreProbabilities", "performanceEnergy"],
+                    additionalProperties: false,
+                  },
                 },
-                required: ["technicalSkill", "creativityOriginality", "emotionalImpact", "potential", "feedback"],
+                required: ["technicalSkill", "creativityOriginality", "emotionalImpact", "potential", "feedback", "vocalDNA"],
                 additionalProperties: false,
               },
             },
@@ -109,7 +144,6 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
     });
 
     if (!response.ok) {
-      // Revert status on failure
       await supabaseAdmin.from("submissions").update({ status: "pending" }).eq("id", submissionId);
 
       if (response.status === 429) {
@@ -132,20 +166,20 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       throw new Error("No structured response from AI");
     }
 
-    const scores = JSON.parse(toolCall.function.arguments);
+    const result = JSON.parse(toolCall.function.arguments);
     const overall = Math.round(
-      ((scores.technicalSkill + scores.creativityOriginality + scores.emotionalImpact + scores.potential) / 4) * 10
+      ((result.technicalSkill + result.creativityOriginality + result.emotionalImpact + result.potential) / 4) * 10
     ) / 10;
 
-    // Save scores to DB
+    // Save scores
     const { error: scoreErr } = await supabaseAdmin.from("ai_scores").insert({
       submission_id: submissionId,
-      technical_skill: scores.technicalSkill,
-      creativity_originality: scores.creativityOriginality,
-      emotional_impact: scores.emotionalImpact,
-      potential: scores.potential,
+      technical_skill: result.technicalSkill,
+      creativity_originality: result.creativityOriginality,
+      emotional_impact: result.emotionalImpact,
+      potential: result.potential,
       overall_score: overall,
-      feedback: scores.feedback,
+      feedback: result.feedback,
     });
 
     if (scoreErr) {
@@ -154,17 +188,36 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       throw new Error("Failed to save scores");
     }
 
-    // Update submission status to scored
+    // Save vocal DNA
+    const vdna = result.vocalDNA;
+    const { error: dnaErr } = await supabaseAdmin.from("vocal_dna").insert({
+      submission_id: submissionId,
+      vocal_range_low: vdna.vocalRangeLow,
+      vocal_range_high: vdna.vocalRangeHigh,
+      vocal_classification: vdna.vocalClassification,
+      pitch_accuracy: vdna.pitchAccuracy,
+      rhythm_timing: vdna.rhythmTiming,
+      tone_profiles: vdna.toneProfiles,
+      genre_probabilities: vdna.genreProbabilities,
+      performance_energy: vdna.performanceEnergy,
+    });
+
+    if (dnaErr) {
+      console.error("Failed to save vocal DNA:", dnaErr);
+      // Non-fatal: scores are saved, continue
+    }
+
     await supabaseAdmin.from("submissions").update({ status: "scored" }).eq("id", submissionId);
 
     return new Response(
       JSON.stringify({
-        technicalSkill: scores.technicalSkill,
-        creativityOriginality: scores.creativityOriginality,
-        emotionalImpact: scores.emotionalImpact,
-        potential: scores.potential,
-        overall: overall,
-        feedback: scores.feedback,
+        technicalSkill: result.technicalSkill,
+        creativityOriginality: result.creativityOriginality,
+        emotionalImpact: result.emotionalImpact,
+        potential: result.potential,
+        overall,
+        feedback: result.feedback,
+        vocalDNA: vdna,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

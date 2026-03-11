@@ -112,6 +112,56 @@ export type Database = {
         }
         Relationships: []
       }
+      vocal_dna: {
+        Row: {
+          created_at: string
+          genre_probabilities: Json
+          id: string
+          performance_energy: number
+          pitch_accuracy: number
+          rhythm_timing: number
+          submission_id: string
+          tone_profiles: string[]
+          vocal_classification: string
+          vocal_range_high: string
+          vocal_range_low: string
+        }
+        Insert: {
+          created_at?: string
+          genre_probabilities?: Json
+          id?: string
+          performance_energy: number
+          pitch_accuracy: number
+          rhythm_timing: number
+          submission_id: string
+          tone_profiles?: string[]
+          vocal_classification: string
+          vocal_range_high: string
+          vocal_range_low: string
+        }
+        Update: {
+          created_at?: string
+          genre_probabilities?: Json
+          id?: string
+          performance_energy?: number
+          pitch_accuracy?: number
+          rhythm_timing?: number
+          submission_id?: string
+          tone_profiles?: string[]
+          vocal_classification?: string
+          vocal_range_high?: string
+          vocal_range_low?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vocal_dna_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: true
+            referencedRelation: "submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
