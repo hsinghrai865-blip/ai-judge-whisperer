@@ -36,10 +36,10 @@ const Index = () => {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch submissions with their scores
+      // Fetch submissions with their scores and vocal DNA
       const { data: subs, error: subErr } = await supabase
         .from("submissions")
-        .select("*, ai_scores(*)")
+        .select("*, ai_scores(*), vocal_dna(*)")
         .order("submitted_at", { ascending: false });
 
       if (subErr) throw subErr;
