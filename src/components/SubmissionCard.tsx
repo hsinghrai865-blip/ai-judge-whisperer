@@ -10,6 +10,7 @@ export interface Submission {
   status: "pending" | "judging" | "scored";
   overallScore?: number;
   apiScore?: number;
+  smbpScore?: number;
   submittedAt: string;
   contentType: string;
 }
