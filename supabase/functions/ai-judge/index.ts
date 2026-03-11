@@ -114,7 +114,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
             type: "function",
             function: {
               name: "submit_evaluation",
-              description: "Submit the complete three-layer evaluation.",
+              description: "Submit the complete four-layer evaluation.",
               parameters: {
                 type: "object",
                 properties: {
