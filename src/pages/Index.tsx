@@ -71,9 +71,26 @@ const Index = () => {
           };
         }
       });
+      const dnaMap: Record<string, VocalDNA> = {};
+      (subs || []).forEach((s: any) => {
+        const vd = s.vocal_dna?.[0];
+        if (vd) {
+          dnaMap[s.id] = {
+            vocalRangeLow: vd.vocal_range_low,
+            vocalRangeHigh: vd.vocal_range_high,
+            vocalClassification: vd.vocal_classification,
+            pitchAccuracy: Number(vd.pitch_accuracy),
+            rhythmTiming: Number(vd.rhythm_timing),
+            toneProfiles: vd.tone_profiles,
+            genreProbabilities: vd.genre_probabilities as { genre: string; probability: number }[],
+            performanceEnergy: Number(vd.performance_energy),
+          };
+        }
+      });
 
       setSubmissions(mapped);
       setScores(scoresMap);
+      setVocalDNAs(dnaMap);
     } catch (err) {
       console.error("Failed to fetch data:", err);
     } finally {
