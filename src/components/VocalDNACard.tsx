@@ -53,6 +53,8 @@ const MetricBar = ({ label, value, max = 100, delay = 0, unit = "%", estimated =
 const VocalDNACard = ({ data }: VocalDNACardProps) => {
   const maxGenreProb = Math.max(...data.genreProbabilities.map((g) => g.probability), 1);
   const isSignalProcessed = data.isPlaceholder === false;
+  const isEstimated = !isSignalProcessed;
+  const hasSignalData = (data.tempoBpm ?? 0) > 0 || (data.spectralBrightness ?? 0) > 0 || (data.vocalConfidence ?? 0) > 0;
 
   return (
     <motion.div
