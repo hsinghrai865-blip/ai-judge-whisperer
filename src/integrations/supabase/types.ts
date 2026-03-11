@@ -248,15 +248,22 @@ export type Database = {
           analysis_raw_json: Json | null
           analysis_status: string
           created_at: string
+          dynamic_range: number | null
+          energy_score: number | null
           genre_probabilities: Json
           id: string
           is_placeholder: boolean
+          onset_strength: number | null
           performance_energy: number
           pitch_accuracy: number
           rhythm_timing: number
+          spectral_brightness: number | null
           submission_id: string
+          tempo_bpm: number | null
+          timing_accuracy: number | null
           tone_profiles: string[]
           vocal_classification: string
+          vocal_confidence: number | null
           vocal_range_high: string
           vocal_range_low: string
         }
@@ -265,15 +272,22 @@ export type Database = {
           analysis_raw_json?: Json | null
           analysis_status?: string
           created_at?: string
+          dynamic_range?: number | null
+          energy_score?: number | null
           genre_probabilities?: Json
           id?: string
           is_placeholder?: boolean
+          onset_strength?: number | null
           performance_energy: number
           pitch_accuracy: number
           rhythm_timing: number
+          spectral_brightness?: number | null
           submission_id: string
+          tempo_bpm?: number | null
+          timing_accuracy?: number | null
           tone_profiles?: string[]
           vocal_classification: string
+          vocal_confidence?: number | null
           vocal_range_high: string
           vocal_range_low: string
         }
@@ -282,15 +296,22 @@ export type Database = {
           analysis_raw_json?: Json | null
           analysis_status?: string
           created_at?: string
+          dynamic_range?: number | null
+          energy_score?: number | null
           genre_probabilities?: Json
           id?: string
           is_placeholder?: boolean
+          onset_strength?: number | null
           performance_energy?: number
           pitch_accuracy?: number
           rhythm_timing?: number
+          spectral_brightness?: number | null
           submission_id?: string
+          tempo_bpm?: number | null
+          timing_accuracy?: number | null
           tone_profiles?: string[]
           vocal_classification?: string
+          vocal_confidence?: number | null
           vocal_range_high?: string
           vocal_range_low?: string
         }
