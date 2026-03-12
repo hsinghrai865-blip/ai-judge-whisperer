@@ -242,16 +242,26 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       throw new Error("Failed to save scores");
     }
 
-    // Save Vocal DNA — only if no signal-analyzed data exists
+    // Save Vocal DNA — preserve Essentia signal metrics when they already exist
     const vdna = result.vocalDNA;
+    let responseVocalDNA: Record<string, any>;
+
     const { data: existingDna } = await supabaseAdmin
       .from("vocal_dna")
-      .select("analysis_status")
+      .select(
+        "analysis_status, analysis_engine, is_placeholder, pitch_accuracy, rhythm_timing, timing_accuracy, performance_energy, energy_score, tempo_bpm, spectral_brightness, dynamic_range, onset_strength, vocal_confidence"
+      )
       .eq("submission_id", submissionId)
       .single();
 
-    if (existingDna?.analysis_status === "signal_analyzed") {
-      // Essentia data exists — enrich with AI-generated fields only (vocal range, classification, tone, genre)
+    const hasSignalDna = existingDna?.is_placeholder === false;
+
+    if (hasSignalDna) {
+      const enrichedEngine = existingDna?.analysis_engine?.includes("+ AI")
+        ? existingDna.analysis_engine
+        : `${existingDna?.analysis_engine || "Essentia"} + AI`;
+
+      // Keep Essentia numeric metrics, enrich only AI-derived metadata
       const { error: enrichErr } = await supabaseAdmin
         .from("vocal_dna")
         .update({
@@ -260,13 +270,37 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
           vocal_classification: vdna.vocalClassification,
           tone_profiles: vdna.toneProfiles,
           genre_probabilities: vdna.genreProbabilities,
-          performance_energy: vdna.performanceEnergy,
           analysis_status: "signal_analyzed",
-          analysis_engine: existingDna ? "Essentia + AI" : "Essentia",
+          analysis_engine: enrichedEngine,
+          is_placeholder: false,
         })
         .eq("submission_id", submissionId);
-      if (enrichErr) console.error("Failed to enrich vocal DNA:", enrichErr);
-      else console.log("Enriched existing Essentia vocal DNA with AI metadata");
+
+      if (enrichErr) {
+        console.error("Failed to enrich vocal DNA:", enrichErr);
+      } else {
+        console.log("Enriched existing Essentia vocal DNA with AI metadata");
+      }
+
+      responseVocalDNA = {
+        vocalRangeLow: vdna.vocalRangeLow,
+        vocalRangeHigh: vdna.vocalRangeHigh,
+        vocalClassification: vdna.vocalClassification,
+        pitchAccuracy: Number(existingDna?.pitch_accuracy ?? vdna.pitchAccuracy),
+        rhythmTiming: Number(existingDna?.rhythm_timing ?? vdna.rhythmTiming),
+        toneProfiles: vdna.toneProfiles,
+        genreProbabilities: vdna.genreProbabilities,
+        performanceEnergy: Number(existingDna?.performance_energy ?? vdna.performanceEnergy),
+        isPlaceholder: false,
+        analysisEngine: enrichedEngine,
+        timingAccuracy: Number(existingDna?.timing_accuracy ?? existingDna?.rhythm_timing ?? vdna.rhythmTiming),
+        tempoBpm: Number(existingDna?.tempo_bpm ?? 0),
+        energyScore: Number(existingDna?.energy_score ?? existingDna?.performance_energy ?? vdna.performanceEnergy),
+        spectralBrightness: Number(existingDna?.spectral_brightness ?? 0),
+        dynamicRange: Number(existingDna?.dynamic_range ?? 0),
+        onsetStrength: Number(existingDna?.onset_strength ?? 0),
+        vocalConfidence: Number(existingDna?.vocal_confidence ?? 0),
+      };
     } else {
       // No Essentia data — save full AI-estimated profile
       const { error: dnaErr } = await supabaseAdmin.from("vocal_dna").upsert({
@@ -283,7 +317,21 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
         analysis_engine: "google/gemini-3-flash-preview",
         is_placeholder: true,
       }, { onConflict: "submission_id" });
+
       if (dnaErr) console.error("Failed to save vocal DNA:", dnaErr);
+
+      responseVocalDNA = {
+        vocalRangeLow: vdna.vocalRangeLow,
+        vocalRangeHigh: vdna.vocalRangeHigh,
+        vocalClassification: vdna.vocalClassification,
+        pitchAccuracy: Number(vdna.pitchAccuracy),
+        rhythmTiming: Number(vdna.rhythmTiming),
+        toneProfiles: vdna.toneProfiles,
+        genreProbabilities: vdna.genreProbabilities,
+        performanceEnergy: Number(vdna.performanceEnergy),
+        isPlaceholder: true,
+        analysisEngine: "google/gemini-3-flash-preview",
+      };
     }
 
     // Save Artist Potential Index
@@ -333,7 +381,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
         potential: result.potential,
         overall,
         feedback: result.feedback,
-        vocalDNA: vdna,
+        vocalDNA: responseVocalDNA,
         artistPotentialIndex: { ...api, overallScore: apiOverall },
         socialBreakout: { ...sbp, overallScore: sbpOverall },
       }),
