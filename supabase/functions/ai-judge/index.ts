@@ -334,6 +334,43 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
       };
     }
 
+    // Save Artist Potential Index
+    const api = result.artistPotentialIndex;
+    const apiOverall = Math.round(
+      ((api.commercialAppeal + api.memorability + api.replayValue + api.brandIdentityPotential + api.growthPotential) / 5) * 10
+    ) / 10;
+
+    const { error: apiErr } = await supabaseAdmin.from("artist_potential_index").upsert({
+      submission_id: submissionId,
+      overall_score: apiOverall,
+      commercial_appeal: api.commercialAppeal,
+      memorability: api.memorability,
+      replay_value: api.replayValue,
+      brand_identity_potential: api.brandIdentityPotential,
+      growth_potential: api.growthPotential,
+      market_fit: api.marketFit,
+      ai_summary: api.aiSummary,
+    }, { onConflict: "submission_id" });
+    if (apiErr) console.error("Failed to save API scores:", apiErr);
+
+    // Save Social Breakout Potential
+    const sbp = result.socialBreakout;
+    const sbpOverall = Math.round(
+      ((sbp.hookStrength + sbp.clipability + sbp.emotionalReactivity + sbp.danceCompatibility + sbp.discoveryPotential) / 5) * 10
+    ) / 10;
+
+    const { error: sbpErr } = await supabaseAdmin.from("social_breakout_potential").upsert({
+      submission_id: submissionId,
+      overall_score: sbpOverall,
+      hook_strength: sbp.hookStrength,
+      clipability: sbp.clipability,
+      emotional_reactivity: sbp.emotionalReactivity,
+      dance_compatibility: sbp.danceCompatibility,
+      discovery_potential: sbp.discoveryPotential,
+      ai_summary: sbp.aiSummary,
+    }, { onConflict: "submission_id" });
+    if (sbpErr) console.error("Failed to save social breakout:", sbpErr);
+
     await supabaseAdmin.from("submissions").update({ status: "scored" }).eq("id", submissionId);
 
     return new Response(
@@ -344,7 +381,7 @@ ${submission.content_text ? `Content:\n${submission.content_text}` : ""}`;
         potential: result.potential,
         overall,
         feedback: result.feedback,
-        vocalDNA: vdna,
+        vocalDNA: responseVocalDNA,
         artistPotentialIndex: { ...api, overallScore: apiOverall },
         socialBreakout: { ...sbp, overallScore: sbpOverall },
       }),
