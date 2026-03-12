@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Service role can update vocal_dna" ON public.vocal_dna;
