@@ -65,10 +65,25 @@ serve(async (req) => {
 
     // 3. Trigger audio analysis
     try {
-      // Download audio
-      const audioResponse = await fetch(audioUrl);
-      if (!audioResponse.ok) throw new Error(`Failed to download audio: ${audioResponse.status}`);
-      const audioBlob = await audioResponse.blob();
+      // Download audio from private storage bucket via admin client
+      const storagePathMatch = audioUrl.match(/audio-submissions\/(.+)$/);
+      let audioBlob: Blob;
+
+      if (storagePathMatch) {
+        const storagePath = decodeURIComponent(storagePathMatch[1]);
+        const { data: fileData, error: dlError } = await supabaseAdmin.storage
+          .from("audio-submissions")
+          .download(storagePath);
+
+        if (dlError || !fileData) {
+          throw new Error(`Failed to download audio from storage: ${dlError?.message || "No data"}`);
+        }
+        audioBlob = fileData;
+      } else {
+        const audioResponse = await fetch(audioUrl);
+        if (!audioResponse.ok) throw new Error(`Failed to download audio: ${audioResponse.status}`);
+        audioBlob = await audioResponse.blob();
+      }
 
       const formData = new FormData();
       formData.append("file", audioBlob, fileName || "demo.mp3");
