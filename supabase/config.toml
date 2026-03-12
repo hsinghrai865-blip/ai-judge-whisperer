@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.submit-demo]
 verify_jwt = false
+
+[functions.get-scores]
+verify_jwt = false
