@@ -1,13 +1,13 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import essentia.standard as es
 import numpy as np
 import tempfile
 import subprocess
 import os
+import traceback
 
-app = FastAPI(title="Casablanca Audio Engine", version="1.1.0")
+app = FastAPI(title="Casablanca Audio Engine", version="1.1.1")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,9 +16,22 @@ app.add_middleware(
 )
 
 
+@app.on_event("startup")
+async def startup_log():
+    print(
+        f"[boot] python={os.sys.version.split()[0]} port={os.getenv('PORT', '<unset>')} pid={os.getpid()}",
+        flush=True,
+    )
+
+
 @app.get("/")
 def health():
-    return {"status": "ok", "engine": "essentia", "version": "1.1.0"}
+    return {"status": "ok", "engine": "essentia", "version": "1.1.1"}
+
+
+@app.get("/healthz")
+def healthz():
+    return {"status": "ok"}
 
 
 def convert_to_wav(input_path: str) -> str:
@@ -50,6 +63,15 @@ async def analyze(file: UploadFile = File(...)):
 
         # Convert to WAV first for reliable codec support (handles .m4a, .ogg, .flac, etc.)
         wav_path = convert_to_wav(tmp_path)
+
+        # Lazy-load Essentia so startup stays healthy even if Essentia fails
+        try:
+            import essentia.standard as es
+        except Exception as import_error:
+            return JSONResponse(
+                status_code=500,
+                content={"status": "error", "message": f"Essentia import failed: {import_error}"},
+            )
 
         # Load audio with Essentia
         audio = es.MonoLoader(filename=wav_path, sampleRate=44100)()
@@ -137,7 +159,8 @@ async def analyze(file: UploadFile = File(...)):
         }
 
     except Exception as e:
-        print(f"Analysis error: {e}")
+        print(f"Analysis error: {e}", flush=True)
+        traceback.print_exc()
         return JSONResponse(
             status_code=500,
             content={"status": "error", "message": str(e)},
@@ -152,4 +175,5 @@ async def analyze(file: UploadFile = File(...)):
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
