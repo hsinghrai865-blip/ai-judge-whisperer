@@ -106,22 +106,30 @@ serve(async (req) => {
 
       const analysisResult = await analysisResponse.json();
 
-      // Store in vocal_dna
+      // Store in vocal_dna with full Essentia metrics
+      const r = analysisResult;
       await supabaseAdmin.from("vocal_dna").upsert(
         {
           submission_id: submissionId,
-          pitch_accuracy: analysisResult.pitch_accuracy ?? 0,
-          rhythm_timing: analysisResult.rhythm_stability ?? 0,
-          performance_energy: analysisResult.tone_quality ?? 0,
-          vocal_range_low: "N/A",
-          vocal_range_high: "N/A",
-          vocal_classification: "Analyzed",
-          tone_profiles: [],
-          genre_probabilities: [],
+          pitch_accuracy: r.pitch_accuracy ?? 0,
+          rhythm_timing: r.timing_accuracy ?? r.rhythm_stability ?? 0,
+          timing_accuracy: r.timing_accuracy ?? r.rhythm_stability ?? 0,
+          performance_energy: r.energy_score ?? r.tone_quality ?? 0,
+          energy_score: r.energy_score ?? r.tone_quality ?? 0,
+          tempo_bpm: r.tempo_bpm ?? 0,
+          spectral_brightness: r.spectral_brightness ?? 0,
+          dynamic_range: r.dynamic_range ?? 0,
+          onset_strength: r.onset_strength ?? 0,
+          vocal_confidence: r.vocal_confidence ?? 0,
+          vocal_range_low: r.vocal_range_low ?? "N/A",
+          vocal_range_high: r.vocal_range_high ?? "N/A",
+          vocal_classification: r.vocal_classification ?? "Analyzed",
+          tone_profiles: r.tone_profiles ?? [],
+          genre_probabilities: r.genre_probabilities ?? [],
           analysis_status: "signal_analyzed",
-          analysis_engine: "casablanca-audio-engine",
+          analysis_engine: "Essentia",
           is_placeholder: false,
-          analysis_raw_json: analysisResult,
+          analysis_raw_json: r,
         },
         { onConflict: "submission_id" }
       );
