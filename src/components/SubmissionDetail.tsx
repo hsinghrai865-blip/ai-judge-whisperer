@@ -32,8 +32,10 @@ interface SubmissionDetailProps {
   onRetry?: () => void;
 }
 
-const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socialBreakout, onBack, onJudge, isJudging }: SubmissionDetailProps) => {
+const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socialBreakout, onBack, onJudge, isJudging, onRetry }: SubmissionDetailProps) => {
   const [audioScores, setAudioScores] = useState<AudioScores | null>(null);
+  const isFailed = submission.audioAnalysisStatus === "failed";
+  const isRetrying = submission.audioAnalysisStatus === "analyzing" && submission.status === "judging";
 
   return (
   <motion.div
