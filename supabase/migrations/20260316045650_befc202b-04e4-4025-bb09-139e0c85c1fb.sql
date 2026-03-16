@@ -1,0 +1,6 @@
+-- Delete related data first (foreign key constraints)
+DELETE FROM ai_scores WHERE submission_id IN ('a825152f-aeac-4ead-944e-bb9e3497d32e', '207aae4a-2edf-4ab4-8f11-2c4761f035aa', '6985ac49-3238-4562-b6f4-27f3515abf60', 'e8f4ab4a-f66f-4615-a99f-e336dd604e81');
+DELETE FROM vocal_dna WHERE submission_id IN ('a825152f-aeac-4ead-944e-bb9e3497d32e', '207aae4a-2edf-4ab4-8f11-2c4761f035aa', '6985ac49-3238-4562-b6f4-27f3515abf60', 'e8f4ab4a-f66f-4615-a99f-e336dd604e81');
+DELETE FROM artist_potential_index WHERE submission_id IN ('a825152f-aeac-4ead-944e-bb9e3497d32e', '207aae4a-2edf-4ab4-8f11-2c4761f035aa', '6985ac49-3238-4562-b6f4-27f3515abf60', 'e8f4ab4a-f66f-4615-a99f-e336dd604e81');
+DELETE FROM social_breakout_potential WHERE submission_id IN ('a825152f-aeac-4ead-944e-bb9e3497d32e', '207aae4a-2edf-4ab4-8f11-2c4761f035aa', '6985ac49-3238-4562-b6f4-27f3515abf60', 'e8f4ab4a-f66f-4615-a99f-e336dd604e81');
+DELETE FROM submissions WHERE id IN ('a825152f-aeac-4ead-944e-bb9e3497d32e', '207aae4a-2edf-4ab4-8f11-2c4761f035aa', '6985ac49-3238-4562-b6f4-27f3515abf60', 'e8f4ab4a-f66f-4615-a99f-e336dd604e81');
