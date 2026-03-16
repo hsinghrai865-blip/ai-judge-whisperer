@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Inbox, CheckCircle, BarChart3, Sparkles, Filter, RefreshCw, TrendingUp, ArrowUpDown, Share2 } from "lucide-react";
+import { Inbox, CheckCircle, BarChart3, Sparkles, Filter, RefreshCw, TrendingUp, ArrowUpDown, Share2, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import DashboardHeader from "@/components/DashboardHeader";
