@@ -13,6 +13,7 @@ export interface Submission {
   smbpScore?: number;
   submittedAt: string;
   contentType: string;
+  audioAnalysisStatus?: string;
 }
 
 const categoryIcons: Record<string, React.ElementType> = {
