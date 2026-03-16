@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Music, Sparkles, User, Calendar, Tag } from "lucide-react";
+import { ArrowLeft, Music, Sparkles, User, Calendar, Tag, RotateCcw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ScoreBar from "./ScoreBar";
 import VocalDNACard, { type VocalDNA } from "./VocalDNACard";
