@@ -29,6 +29,7 @@ interface SubmissionDetailProps {
   onBack: () => void;
   onJudge: () => void;
   isJudging: boolean;
+  onRetry?: () => void;
 }
 
 const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socialBreakout, onBack, onJudge, isJudging }: SubmissionDetailProps) => {
