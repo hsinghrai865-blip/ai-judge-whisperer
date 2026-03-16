@@ -346,6 +346,7 @@ const Index = () => {
               onBack={() => setSelectedId(null)}
               onJudge={handleJudge}
               isJudging={isJudging}
+              onRetry={() => handleRetryAnalysis(selected.id)}
             />
           ) : (
             <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
