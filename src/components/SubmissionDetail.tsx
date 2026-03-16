@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Music, Sparkles, User, Calendar, Tag } from "lucide-react";
+import { ArrowLeft, Music, Sparkles, User, Calendar, Tag, RotateCcw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ScoreBar from "./ScoreBar";
 import VocalDNACard, { type VocalDNA } from "./VocalDNACard";
@@ -29,10 +29,13 @@ interface SubmissionDetailProps {
   onBack: () => void;
   onJudge: () => void;
   isJudging: boolean;
+  onRetry?: () => void;
 }
 
-const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socialBreakout, onBack, onJudge, isJudging }: SubmissionDetailProps) => {
+const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socialBreakout, onBack, onJudge, isJudging, onRetry }: SubmissionDetailProps) => {
   const [audioScores, setAudioScores] = useState<AudioScores | null>(null);
+  const isFailed = submission.audioAnalysisStatus === "failed";
+  const isRetrying = submission.audioAnalysisStatus === "analyzing" && submission.status === "judging";
 
   return (
   <motion.div
@@ -70,6 +73,43 @@ const SubmissionDetail = ({ submission, scores, vocalDNA, artistPotential, socia
         </div>
       </div>
     </div>
+
+    {/* Retry Banner for Failed Submissions */}
+    {isFailed && onRetry && (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-destructive/5 border border-destructive/20 rounded-2xl p-6 flex items-center justify-between gap-4"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+            <AlertCircle className="w-5 h-5 text-destructive" />
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-foreground">Audio Analysis Failed</h4>
+            <p className="text-xs text-muted-foreground mt-0.5">The previous analysis attempt failed. Retry to re-run the full pipeline.</p>
+          </div>
+        </div>
+        <Button
+          onClick={onRetry}
+          disabled={isRetrying}
+          variant="secondary"
+          className="gap-2 border-destructive/20 hover:bg-destructive/10 flex-shrink-0"
+        >
+          {isRetrying ? (
+            <>
+              <RotateCcw className="w-4 h-4 animate-spin" />
+              Retrying…
+            </>
+          ) : (
+            <>
+              <RotateCcw className="w-4 h-4" />
+              Retry Analysis
+            </>
+          )}
+        </Button>
+      </motion.div>
+    )}
 
     {/* AI Scores or Judge Button */}
     {scores ? (
