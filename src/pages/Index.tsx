@@ -255,6 +255,30 @@ const Index = () => {
     }
   };
 
+  const handleRetryAnalysis = async (submissionId: string) => {
+    setSubmissions((prev) =>
+      prev.map((s) => (s.id === submissionId ? { ...s, status: "judging" as const, audioAnalysisStatus: "analyzing" } : s))
+    );
+
+    try {
+      const { data, error } = await supabase.functions.invoke("retry-analysis", {
+        body: { submissionId },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast({ title: "Retry successful", description: "Submission has been re-analyzed and scored." });
+      await fetchData();
+    } catch (err: any) {
+      console.error("Retry error:", err);
+      setSubmissions((prev) =>
+        prev.map((s) => (s.id === submissionId ? { ...s, status: "pending" as const, audioAnalysisStatus: "failed" } : s))
+      );
+      toast({ title: "Retry failed", description: err.message || "Something went wrong", variant: "destructive" });
+    }
+  };
+
   const scoredSubs = submissions.filter((s) => s.overallScore !== undefined);
   const apiScoredSubs = submissions.filter((s) => s.apiScore !== undefined);
   const smbpScoredSubs = submissions.filter((s) => s.smbpScore !== undefined);
