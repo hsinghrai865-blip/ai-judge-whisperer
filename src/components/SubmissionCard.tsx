@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Music, Mic2, Film, Trophy, Palette, Heart, Clock, CheckCircle, Loader2 } from "lucide-react";
+import { Music, Mic2, Film, Trophy, Palette, Heart, Clock, CheckCircle, Loader2, AlertCircle, RotateCcw } from "lucide-react";
 
 export interface Submission {
   id: string;
