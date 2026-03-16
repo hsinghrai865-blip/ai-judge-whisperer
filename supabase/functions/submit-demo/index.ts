@@ -65,24 +65,35 @@ serve(async (req) => {
 
     // 3. Trigger audio analysis
     try {
-      // Download audio from private storage bucket via admin client
+      // Download audio - only use local storage if URL belongs to THIS project
+      const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+      const isLocalStorage = audioUrl.startsWith(supabaseUrl);
       const storagePathMatch = audioUrl.match(/audio-submissions\/(.+)$/);
       let audioBlob: Blob;
 
-      if (storagePathMatch) {
+      if (isLocalStorage && storagePathMatch) {
+        // Local storage: download via admin client (bypasses RLS)
         const storagePath = decodeURIComponent(storagePathMatch[1]);
         const { data: fileData, error: dlError } = await supabaseAdmin.storage
           .from("audio-submissions")
           .download(storagePath);
 
         if (dlError || !fileData) {
-          throw new Error(`Failed to download audio from storage: ${dlError?.message || "No data"}`);
+          throw new Error(`Failed to download audio from local storage: ${dlError?.message || "No data"}`);
         }
         audioBlob = fileData;
       } else {
+        // External URL (partner app or public link): fetch directly
+        console.log(`Fetching external audio URL: ${audioUrl.substring(0, 80)}...`);
         const audioResponse = await fetch(audioUrl);
-        if (!audioResponse.ok) throw new Error(`Failed to download audio: ${audioResponse.status}`);
+        if (!audioResponse.ok) {
+          throw new Error(`Failed to download external audio (${audioResponse.status}): ${audioUrl.substring(0, 100)}`);
+        }
         audioBlob = await audioResponse.blob();
+        if (audioBlob.size === 0) {
+          throw new Error("Downloaded audio file is empty (0 bytes)");
+        }
+        console.log(`Downloaded external audio: ${audioBlob.size} bytes`);
       }
 
       const formData = new FormData();
