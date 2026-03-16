@@ -141,6 +141,7 @@ const Index = () => {
           smbpScore: sb ? Number(sb.overall_score) : undefined,
           submittedAt: new Date(s.submitted_at).toLocaleDateString(),
           contentType: s.content_type,
+          audioAnalysisStatus: s.audio_analysis_status,
         };
       });
 
