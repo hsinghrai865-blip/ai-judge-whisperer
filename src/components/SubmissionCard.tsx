@@ -87,6 +87,12 @@ const SubmissionCard = ({ submission, index, onClick }: SubmissionCardProps) => 
               <StatusIcon className={`w-3 h-3 ${submission.status === "judging" ? "animate-spin" : ""}`} />
               {status.label}
             </span>
+            {submission.audioAnalysisStatus === "failed" && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-destructive bg-destructive/10">
+                <AlertCircle className="w-3 h-3" />
+                Analysis Failed
+              </span>
+            )}
             <span className="text-xs text-muted-foreground capitalize px-2 py-1 rounded-full bg-secondary">
               {submission.platform === "casablanca" ? "Casablanca" : "Growth Tour"}
             </span>
